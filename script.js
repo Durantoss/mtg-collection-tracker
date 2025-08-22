@@ -46,6 +46,20 @@ class MTGCollectionTracker {
                 this.mobileUI = new MobileUIEnhanced(this);
                 window.mobileUI = this.mobileUI;
             }
+            
+            // Initialize Phase 2 & 3 Advanced Features
+            if (window.EnhancedPriceTracker) {
+                this.enhancedPriceTracker = new EnhancedPriceTracker(this);
+                window.enhancedPriceTracker = this.enhancedPriceTracker;
+            }
+            if (window.AdvancedSearchFilters) {
+                this.advancedSearchFilters = new AdvancedSearchFilters(this);
+                window.advancedSearchFilters = this.advancedSearchFilters;
+            }
+            if (window.WishlistAndStats) {
+                this.wishlistAndStats = new WishlistAndStats(this);
+                window.wishlistAndStats = this.wishlistAndStats;
+            }
         }, 100);
     }
 
