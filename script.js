@@ -42,6 +42,10 @@ class MTGCollectionTracker {
             if (window.URLImporter) {
                 this.urlImporter = new URLImporter(this);
             }
+            if (window.MobileUIEnhanced) {
+                this.mobileUI = new MobileUIEnhanced(this);
+                window.mobileUI = this.mobileUI;
+            }
         }, 100);
     }
 
