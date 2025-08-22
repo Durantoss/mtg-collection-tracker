@@ -11,6 +11,7 @@ class MTGCollectionTracker {
         this.setsCache = JSON.parse(localStorage.getItem('mtgSetsCache')) || null;
         this.priceTracker = null;
         this.priceSources = this.initializePriceSources();
+        this.importExport = null;
         
         // Authentication properties
         this.currentUser = null;
@@ -33,6 +34,10 @@ class MTGCollectionTracker {
         setTimeout(() => {
             if (window.PriceTracker) {
                 this.priceTracker = new PriceTracker(this);
+            }
+            if (window.CollectionImportExport) {
+                this.importExport = new CollectionImportExport(this);
+                window.collectionImportExport = this.importExport;
             }
         }, 100);
     }
