@@ -137,6 +137,19 @@ Examples:
 - JSON data
 - MTGO export format"></textarea>
                     </div>
+                    <div class="import-method" data-method="url">
+                        <h5><i class="fas fa-link"></i> Import from URL</h5>
+                        <div class="url-import-area">
+                            <input type="url" id="import-url" placeholder="Enter collection URL (e.g., Collectr, Deckbox, etc.)">
+                            <button type="button" class="btn btn-secondary" id="fetch-url-btn">
+                                <i class="fas fa-download"></i> Fetch Collection
+                            </button>
+                            <div class="url-import-status" id="url-import-status"></div>
+                            <div class="supported-sites">
+                                <small>Supported sites: Collectr.com, and more coming soon</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="import-options-advanced">
                     <h4>Import Options:</h4>
@@ -205,6 +218,54 @@ Examples:
                 this.previewImport(importText.value.trim());
             }
         });
+
+        // URL import handling
+        const importUrl = document.getElementById('import-url');
+        const fetchUrlBtn = document.getElementById('fetch-url-btn');
+        const urlImportStatus = document.getElementById('url-import-status');
+
+        if (fetchUrlBtn) {
+            fetchUrlBtn.addEventListener('click', async () => {
+                const url = importUrl.value.trim();
+                if (!url) {
+                    this.app.showNotification('Please enter a URL to import from', 'warning');
+                    return;
+                }
+
+                // Show loading state
+                fetchUrlBtn.disabled = true;
+                fetchUrlBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+                urlImportStatus.innerHTML = '<div class="status-loading">Fetching collection data...</div>';
+
+                try {
+                    // Use the URL import functionality
+                    if (window.URLImporter) {
+                        const urlImporter = new window.URLImporter();
+                        const cards = await urlImporter.importFromURL(url);
+                        
+                        if (cards && cards.length > 0) {
+                            // Store the imported data for the main import process
+                            window.urlImportData = cards;
+                            
+                            // Show success and preview
+                            urlImportStatus.innerHTML = `<div class="status-success">Successfully fetched ${cards.length} cards!</div>`;
+                            this.previewImport(JSON.stringify(cards));
+                        } else {
+                            urlImportStatus.innerHTML = '<div class="status-error">No cards found at the provided URL</div>';
+                        }
+                    } else {
+                        throw new Error('URL import functionality not available');
+                    }
+                } catch (error) {
+                    console.error('URL import error:', error);
+                    urlImportStatus.innerHTML = `<div class="status-error">Error: ${error.message}</div>`;
+                } finally {
+                    // Reset button state
+                    fetchUrlBtn.disabled = false;
+                    fetchUrlBtn.innerHTML = '<i class="fas fa-download"></i> Fetch Collection';
+                }
+            });
+        }
 
         // Method switching
         importMethods.forEach(method => {
@@ -747,7 +808,7 @@ importExportStyles.textContent = `
 
     .import-methods {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 1rem;
         margin: 1rem 0;
     }
@@ -885,6 +946,59 @@ importExportStyles.textContent = `
         color: rgba(255, 255, 255, 0.7);
         font-style: italic;
         padding: 1rem 0;
+    }
+
+    .url-import-area {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #import-url {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        color: white;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    #import-url:focus {
+        border-color: #ffd700;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+    }
+
+    #fetch-url-btn {
+        align-self: flex-start;
+        min-width: 150px;
+    }
+
+    .url-import-status {
+        min-height: 1.5rem;
+        margin: 0.5rem 0;
+    }
+
+    .status-loading {
+        color: #ffd700;
+        font-style: italic;
+    }
+
+    .status-success {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .status-error {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .supported-sites {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
     }
 
     @media (max-width: 768px) {

@@ -142,6 +142,9 @@ class MTGCollectionTracker {
         this.closeLoginModal();
         this.closeRegisterModal();
         
+        // Remove any existing login prompts that might be blocking the UI
+        this.removeLoginPrompts();
+        
         // Show user menu
         const userMenu = document.getElementById('user-menu');
         if (userMenu) {
@@ -187,6 +190,9 @@ class MTGCollectionTracker {
     }
 
     showLoginPrompt() {
+        // Remove any existing login prompts first
+        this.removeLoginPrompts();
+        
         // Show a subtle login prompt
         const loginPrompt = document.createElement('div');
         loginPrompt.className = 'login-prompt';
@@ -219,6 +225,16 @@ class MTGCollectionTracker {
                 setTimeout(() => loginPrompt.remove(), 300);
             }
         }, 10000);
+    }
+
+    removeLoginPrompts() {
+        // Remove all existing login prompt boxes
+        const existingPrompts = document.querySelectorAll('.login-prompt');
+        existingPrompts.forEach(prompt => {
+            if (prompt.parentNode) {
+                prompt.remove();
+            }
+        });
     }
 
     setupAuthEventListeners() {

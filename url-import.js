@@ -80,24 +80,62 @@ class URLImporter {
 
         const url = urlInput.value.trim();
         
-        // Show loading state
+        // Validate URL format
+        try {
+            new URL(url);
+        } catch (error) {
+            this.app.showNotification('Please enter a valid URL (e.g., https://example.com)', 'error');
+            return;
+        }
+        
+        // Check if the URL is from a supported site
+        const hostname = new URL(url).hostname.toLowerCase();
+        const parser = this.findParser(hostname);
+        
+        if (!parser) {
+            this.app.showNotification(`Unsupported website: ${hostname}. Supported sites: Collectr, Moxfield, EDHRec, MTGGoldfish, Archidekt`, 'warning');
+            return;
+        }
+        
+        // Show loading state with progress updates
         const originalText = fetchBtn.innerHTML;
-        fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+        fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
         fetchBtn.disabled = true;
 
         try {
+            this.app.showNotification(`Attempting to fetch cards from ${hostname}...`, 'info');
+            
             const cards = await this.importFromURL(url);
             
             if (cards && cards.length > 0) {
                 // Use existing import preview system
                 this.displayImportPreview(cards);
-                this.app.showNotification(`Found ${cards.length} cards from URL!`, 'success');
+                this.app.showNotification(`Successfully found ${cards.length} cards from ${hostname}!`, 'success');
+                
+                // Clear the URL input on success
+                urlInput.value = '';
             } else {
-                this.app.showNotification('No cards found at this URL', 'warning');
+                this.app.showNotification(`No cards found at this URL. The page may not contain a card collection or may use an unsupported format.`, 'warning');
             }
         } catch (error) {
             console.error('URL import error:', error);
-            this.app.showNotification(`Error importing from URL: ${error.message}`, 'error');
+            
+            // Provide more specific error messages
+            let errorMessage = 'Error importing from URL';
+            
+            if (error.message.includes('CORS')) {
+                errorMessage = 'Website blocks direct access. Please try the manual import method shown below.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Unable to connect to the website. Please check the URL and try again.';
+            } else if (error.message.includes('Unsupported website')) {
+                errorMessage = error.message;
+            } else if (error.message.includes('Failed to parse')) {
+                errorMessage = 'Unable to parse the page content. The website may have changed its format.';
+            } else {
+                errorMessage = `Import failed: ${error.message}`;
+            }
+            
+            this.app.showNotification(errorMessage, 'error');
         } finally {
             // Restore button state
             fetchBtn.innerHTML = originalText;
@@ -153,26 +191,51 @@ class URLImporter {
 
     async handleCORSError(url) {
         // For CORS-blocked sites, we can try alternative approaches
-        this.app.showNotification('Direct access blocked by website. Trying alternative method...', 'info');
+        this.app.showNotification('Direct access blocked by website. Trying alternative methods...', 'info');
         
-        // Option 1: Try using a CORS proxy (be careful with this in production)
-        try {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            
-            if (data.contents) {
-                const hostname = new URL(url).hostname.toLowerCase();
-                const parser = this.findParser(hostname);
-                return await parser(data.contents, url);
+        // Option 1: Try multiple CORS proxies
+        const proxies = [
+            `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+            `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            `https://cors-anywhere.herokuapp.com/${url}`
+        ];
+        
+        for (const proxyUrl of proxies) {
+            try {
+                console.log(`Trying proxy: ${proxyUrl}`);
+                const response = await fetch(proxyUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    let content;
+                    if (proxyUrl.includes('allorigins.win')) {
+                        const data = await response.json();
+                        content = data.contents;
+                    } else {
+                        content = await response.text();
+                    }
+                    
+                    if (content) {
+                        const hostname = new URL(url).hostname.toLowerCase();
+                        const parser = this.findParser(hostname);
+                        const cards = await parser(content, url);
+                        if (cards && cards.length > 0) {
+                            return cards;
+                        }
+                    }
+                }
+            } catch (proxyError) {
+                console.error(`Proxy ${proxyUrl} failed:`, proxyError);
+                continue;
             }
-        } catch (proxyError) {
-            console.error('Proxy method failed:', proxyError);
         }
 
         // Option 2: Provide instructions for manual copy-paste
         this.showManualImportInstructions(url);
-        throw new Error('Unable to access URL directly. Please use manual import method.');
+        throw new Error('Unable to access URL directly. Please use manual import method below.');
     }
 
     showManualImportInstructions(url) {
@@ -200,85 +263,198 @@ class URLImporter {
         }
     }
 
-    // Parser for Collectr.com
+    // Enhanced Parser for Collectr.com
     async parseCollectr(html, url) {
         const cards = [];
         
-        // Create a temporary DOM to parse the HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Look for card entries in the Collectr format
-        // Based on the structure we saw: card name, set, quantity, price
-        const cardElements = doc.querySelectorAll('h3');
-        
-        cardElements.forEach(cardElement => {
-            try {
-                const cardName = cardElement.textContent.trim();
-                
-                // Skip if it's not a card name (like "Estimated Portfolio Value")
-                if (!cardName || cardName.includes('$') || cardName.includes('Total') || cardName.includes('Eric')) {
-                    return;
-                }
-                
-                // Find the parent container to get additional info
-                const container = cardElement.closest('div');
-                if (!container) return;
-                
-                // Extract set information (usually appears after the card name)
-                let setName = '';
-                const setElement = container.querySelector('p, div');
-                if (setElement) {
-                    const text = setElement.textContent.trim();
-                    // Set names are usually not prices or quantities
-                    if (!text.includes('$') && !text.includes('Qty:') && text !== 'Magic: The Gathering') {
-                        setName = text;
+        try {
+            // Create a temporary DOM to parse the HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            console.log('Parsing Collectr page...');
+            
+            // Try multiple parsing strategies for different Collectr layouts
+            
+            // Strategy 1: Look for card entries with h3 headers (original approach)
+            const h3Elements = doc.querySelectorAll('h3');
+            console.log(`Found ${h3Elements.length} h3 elements`);
+            
+            h3Elements.forEach((cardElement, index) => {
+                try {
+                    const cardName = cardElement.textContent.trim();
+                    
+                    // Skip if it's not a card name
+                    if (!cardName || 
+                        cardName.includes('$') || 
+                        cardName.includes('Total') || 
+                        cardName.includes('Eric') ||
+                        cardName.includes('Portfolio') ||
+                        cardName.includes('Value') ||
+                        cardName.length < 2) {
+                        return;
                     }
+                    
+                    console.log(`Processing card: ${cardName}`);
+                    
+                    // Find the parent container to get additional info
+                    const container = cardElement.closest('div, article, section');
+                    if (!container) return;
+                    
+                    const containerText = container.textContent;
+                    
+                    // Extract set information - look for common MTG set patterns
+                    let setName = '';
+                    const setPatterns = [
+                        /Set:\s*([^$\n]+)/i,
+                        /Edition:\s*([^$\n]+)/i,
+                        /\(([A-Z0-9]{3,4})\)/,  // Set codes like (DOM), (RNA)
+                        /from\s+([^$\n]+?)(?:\s|$)/i
+                    ];
+                    
+                    for (const pattern of setPatterns) {
+                        const match = containerText.match(pattern);
+                        if (match && match[1]) {
+                            setName = match[1].trim();
+                            break;
+                        }
+                    }
+                    
+                    // Extract quantity with multiple patterns
+                    let quantity = 1;
+                    const qtyPatterns = [
+                        /Qty:\s*(\d+)/i,
+                        /Quantity:\s*(\d+)/i,
+                        /x(\d+)/i,
+                        /(\d+)x/i
+                    ];
+                    
+                    for (const pattern of qtyPatterns) {
+                        const match = containerText.match(pattern);
+                        if (match && match[1]) {
+                            quantity = parseInt(match[1]) || 1;
+                            break;
+                        }
+                    }
+                    
+                    // Extract foil status
+                    let isFoil = false;
+                    const foilPatterns = [
+                        /\b(foil|Foil|FOIL)\b/,
+                        /\b(premium|Premium|PREMIUM)\b/,
+                        /✨/
+                    ];
+                    
+                    for (const pattern of foilPatterns) {
+                        if (containerText.match(pattern)) {
+                            isFoil = true;
+                            break;
+                        }
+                    }
+                    
+                    // Extract price with multiple currency formats
+                    let price = 0;
+                    const pricePatterns = [
+                        /\$(\d+\.?\d*)/,
+                        /USD\s*(\d+\.?\d*)/i,
+                        /Price:\s*\$?(\d+\.?\d*)/i,
+                        /Value:\s*\$?(\d+\.?\d*)/i
+                    ];
+                    
+                    for (const pattern of pricePatterns) {
+                        const match = containerText.match(pattern);
+                        if (match && match[1]) {
+                            price = parseFloat(match[1]) || 0;
+                            break;
+                        }
+                    }
+                    
+                    // Clean up card name
+                    let cleanCardName = cardName
+                        .replace(/\s*\([^)]*\)\s*$/, '') // Remove parenthetical info
+                        .replace(/\s*\[[^\]]*\]\s*$/, '') // Remove bracketed info
+                        .replace(/\s*\{[^}]*\}\s*$/, '') // Remove curly brace info
+                        .trim();
+                    
+                    if (cleanCardName && cleanCardName.length > 1) {
+                        cards.push({
+                            name: cleanCardName,
+                            set: setName,
+                            quantity: quantity,
+                            condition: 'Near Mint', // Default condition
+                            isFoil: isFoil,
+                            purchasePrice: price,
+                            currentPrice: price,
+                            notes: `Imported from ${new URL(url).hostname}`,
+                            source: 'url-import'
+                        });
+                        
+                        console.log(`Added card: ${cleanCardName} (${quantity}x) from ${setName} - $${price}`);
+                    }
+                } catch (error) {
+                    console.error(`Error parsing card element ${index}:`, error);
                 }
-                
-                // Extract quantity
-                let quantity = 1;
-                const qtyMatch = container.textContent.match(/Qty:\s*(\d+)/i);
-                if (qtyMatch) {
-                    quantity = parseInt(qtyMatch[1]) || 1;
-                }
-                
-                // Extract foil status
-                let isFoil = false;
-                const foilMatch = container.textContent.match(/\b(foil|Foil)\b/);
-                if (foilMatch) {
-                    isFoil = true;
-                }
-                
-                // Extract price
-                let price = 0;
-                const priceMatch = container.textContent.match(/\$(\d+\.?\d*)/);
-                if (priceMatch) {
-                    price = parseFloat(priceMatch[1]) || 0;
-                }
-                
-                // Clean up card name (remove parenthetical info that might be variants)
-                let cleanCardName = cardName;
-                // Remove common variant indicators but keep the core name
-                cleanCardName = cleanCardName.replace(/\s*\([^)]*\)\s*$/, '').trim();
-                
-                if (cleanCardName) {
-                    cards.push({
-                        name: cleanCardName,
-                        set: setName,
-                        quantity: quantity,
-                        condition: 'Near Mint', // Default condition
-                        isFoil: isFoil,
-                        purchasePrice: price,
-                        currentPrice: price,
-                        notes: `Imported from ${new URL(url).hostname}`,
-                        source: 'url-import'
+            });
+            
+            // Strategy 2: Look for table-based layouts
+            if (cards.length === 0) {
+                console.log('Trying table-based parsing...');
+                const tables = doc.querySelectorAll('table');
+                tables.forEach(table => {
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td, th');
+                        if (cells.length >= 2) {
+                            const cardName = cells[0].textContent.trim();
+                            if (cardName && !cardName.includes('Card') && !cardName.includes('Name')) {
+                                cards.push({
+                                    name: cardName,
+                                    set: cells[1] ? cells[1].textContent.trim() : '',
+                                    quantity: cells[2] ? parseInt(cells[2].textContent) || 1 : 1,
+                                    condition: 'Near Mint',
+                                    isFoil: false,
+                                    purchasePrice: 0,
+                                    currentPrice: 0,
+                                    notes: `Imported from ${new URL(url).hostname}`,
+                                    source: 'url-import'
+                                });
+                            }
+                        }
                     });
-                }
-            } catch (error) {
-                console.error('Error parsing card element:', error);
+                });
             }
-        });
+            
+            // Strategy 3: Look for list-based layouts
+            if (cards.length === 0) {
+                console.log('Trying list-based parsing...');
+                const listItems = doc.querySelectorAll('li, .card-item, .collection-item');
+                listItems.forEach(item => {
+                    const text = item.textContent.trim();
+                    if (text && text.length > 2 && !text.includes('$')) {
+                        const cardName = text.split(/[(\[\{]/)[0].trim();
+                        if (cardName) {
+                            cards.push({
+                                name: cardName,
+                                set: '',
+                                quantity: 1,
+                                condition: 'Near Mint',
+                                isFoil: false,
+                                purchasePrice: 0,
+                                currentPrice: 0,
+                                notes: `Imported from ${new URL(url).hostname}`,
+                                source: 'url-import'
+                            });
+                        }
+                    }
+                });
+            }
+            
+            console.log(`Successfully parsed ${cards.length} cards from Collectr`);
+            
+        } catch (error) {
+            console.error('Error parsing Collectr page:', error);
+            throw new Error(`Failed to parse Collectr page: ${error.message}`);
+        }
         
         return cards;
     }
