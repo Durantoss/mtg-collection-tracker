@@ -374,7 +374,14 @@ Examples:
         const skipDuplicates = document.getElementById('skip-duplicates').checked;
 
         let importData;
-        if (activeMethod.dataset.method === 'file') {
+        let parsedCards;
+
+        // Handle URL import data
+        if (activeMethod && activeMethod.dataset.method === 'url' && window.urlImportData) {
+            parsedCards = window.urlImportData;
+            // Clear the stored data
+            window.urlImportData = null;
+        } else if (activeMethod && activeMethod.dataset.method === 'file') {
             const fileContent = document.querySelector('.file-selected') ? 
                 document.getElementById('import-text').value : null;
             if (!fileContent) {
@@ -382,16 +389,17 @@ Examples:
                 return;
             }
             importData = fileContent;
+            parsedCards = this.parseImportData(importData);
         } else {
             importData = document.getElementById('import-text').value.trim();
             if (!importData) {
                 this.app.showNotification('Please enter data to import', 'warning');
                 return;
             }
+            parsedCards = this.parseImportData(importData);
         }
 
         try {
-            const parsedCards = this.parseImportData(importData);
             let importedCount = 0;
             let skippedCount = 0;
 

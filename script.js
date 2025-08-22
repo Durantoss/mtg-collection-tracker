@@ -39,6 +39,9 @@ class MTGCollectionTracker {
                 this.importExport = new CollectionImportExport(this);
                 window.collectionImportExport = this.importExport;
             }
+            if (window.URLImporter) {
+                this.urlImporter = new URLImporter(this);
+            }
         }, 100);
     }
 
