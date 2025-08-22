@@ -76,6 +76,9 @@ class MTGCollectionTracker {
                 } else {
                     this.handleUserLogout();
                 }
+            } else {
+                // Initialize button state even if auth system isn't available
+                this.updateAuthButton();
             }
         } catch (error) {
             console.error('Error checking auth state:', error);
@@ -138,11 +141,15 @@ class MTGCollectionTracker {
             
             if (usernameEl) usernameEl.textContent = this.userProfile?.username || 'User';
             if (roleEl) roleEl.textContent = this.userProfile?.is_admin ? 'Admin' : 'User';
-            
-            // Show admin panel button if user is admin
-            const adminBtn = document.getElementById('admin-panel-btn');
-            if (adminBtn && this.userProfile?.is_admin) {
-                adminBtn.style.display = 'block';
+        }
+        
+        // Show/hide admin navigation button based on user role
+        const adminNavBtn = document.getElementById('admin-nav-btn');
+        if (adminNavBtn) {
+            if (this.userProfile?.is_admin) {
+                adminNavBtn.style.display = 'block';
+            } else {
+                adminNavBtn.style.display = 'none';
             }
         }
         
@@ -155,6 +162,12 @@ class MTGCollectionTracker {
         const userMenu = document.getElementById('user-menu');
         if (userMenu) {
             userMenu.style.display = 'none';
+        }
+        
+        // Hide admin navigation button
+        const adminNavBtn = document.getElementById('admin-nav-btn');
+        if (adminNavBtn) {
+            adminNavBtn.style.display = 'none';
         }
         
         // Show login prompt
@@ -243,11 +256,6 @@ class MTGCollectionTracker {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
         
-        // Admin panel button
-        const adminPanelBtn = document.getElementById('admin-panel-btn');
-        if (adminPanelBtn) {
-            adminPanelBtn.addEventListener('click', () => this.openAdminPanel());
-        }
         
         // Admin panel close button
         const closeAdminBtn = document.getElementById('close-admin-modal');
@@ -395,7 +403,41 @@ class MTGCollectionTracker {
     }
 
     updateNavigation() {
-        // Add any navigation updates for authenticated users
+        // Update the authentication button based on current state
+        this.updateAuthButton();
+    }
+
+    // Authentication Button Management
+    handleAuthButtonClick() {
+        if (this.isAuthenticated) {
+            // User is logged in, so logout
+            this.handleLogout();
+        } else {
+            // User is not logged in, so show login modal
+            this.openLoginModal();
+        }
+    }
+
+    updateAuthButton() {
+        const authBtn = document.getElementById('auth-btn');
+        const authBtnText = document.getElementById('auth-btn-text');
+        const authBtnIcon = authBtn.querySelector('i');
+        
+        if (!authBtn || !authBtnText || !authBtnIcon) return;
+        
+        if (this.isAuthenticated) {
+            // User is authenticated - show logout state
+            authBtn.classList.add('authenticated');
+            authBtnIcon.className = 'fas fa-sign-out-alt';
+            authBtnText.textContent = 'Sign Out';
+            authBtn.title = 'Sign out of your account';
+        } else {
+            // User is not authenticated - show login state
+            authBtn.classList.remove('authenticated');
+            authBtnIcon.className = 'fas fa-user';
+            authBtnText.textContent = 'Sign In';
+            authBtn.title = 'Sign in to your account';
+        }
     }
 
     // Modal Management
@@ -597,7 +639,15 @@ class MTGCollectionTracker {
     setupEventListeners() {
         // Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+            btn.addEventListener('click', (e) => {
+                if (btn.id === 'auth-btn') {
+                    this.handleAuthButtonClick();
+                } else if (btn.id === 'admin-nav-btn') {
+                    this.openAdminPanel();
+                } else {
+                    this.switchTab(e.target.dataset.tab);
+                }
+            });
         });
 
         // Add card modal
@@ -1245,66 +1295,42 @@ class MTGCollectionTracker {
         this.clearCardPreview();
     }
 
-    // Rules System
+    // Rules System - Now uses comprehensive database
     initializeRules() {
-        return {
-            basic: [
-                {
-                    id: 'turn-structure',
-                    title: 'Turn Structure',
-                    content: 'Each turn consists of five phases: Beginning Phase (Untap, Upkeep, Draw), Main Phase, Combat Phase (Beginning of Combat, Declare Attackers, Declare Blockers, Combat Damage, End of Combat), Second Main Phase, and End Phase (End Step, Cleanup).',
-                    keywords: ['turn', 'phase', 'beginning', 'main', 'combat', 'end', 'untap', 'upkeep', 'draw', 'cleanup']
-                },
-                {
-                    id: 'mana-system',
-                    title: 'Mana System',
-                    content: 'Mana is the resource used to cast spells. It comes in five colors (White, Blue, Black, Red, Green) plus colorless. Lands are the primary source of mana, though other permanents can also produce mana.',
-                    keywords: ['mana', 'color', 'land', 'white', 'blue', 'black', 'red', 'green', 'colorless']
-                }
-            ]
-        };
+        // Rules are now loaded from mtg-rules-database.js
+        return {};
     }
 
     renderRules() {
-        const rulesContainer = document.querySelector('.rules-categories');
-        if (!rulesContainer) return;
-        
-        let html = '';
-        Object.entries(this.rules).forEach(([category, rules]) => {
-            html += `
-                <div class="rule-category">
-                    <h3>${category.charAt(0).toUpperCase() + category.slice(1)} Rules</h3>
-                    <div class="rule-items">
-                        ${rules.map(rule => `
-                            <div class="rule-item" data-rule="${rule.id}">
-                                <h4>${rule.title}</h4>
-                                <p>${rule.content}</p>
-                            </div>
-                        `).join('')}
+        // Initialize the comprehensive rules system
+        if (typeof MTGRulesSearch !== 'undefined') {
+            if (!window.mtgRulesSearch) {
+                window.mtgRulesSearch = new MTGRulesSearch();
+            }
+        } else {
+            // Fallback if rules database isn't loaded
+            const rulesContainer = document.querySelector('.rules-categories');
+            if (rulesContainer) {
+                rulesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book" style="font-size: 4rem; color: #ffd700; margin-bottom: 1rem;"></i>
+                        <h3>Loading Rules Database...</h3>
+                        <p>Please wait while the comprehensive rules system loads.</p>
                     </div>
-                </div>
-            `;
-        });
-        rulesContainer.innerHTML = html;
+                `;
+            }
+        }
     }
 
     searchRules(searchTerm) {
-        // Simplified rules search
-        const rulesContainer = document.querySelector('.rules-categories');
-        if (!rulesContainer) return;
-        
-        if (searchTerm.trim() === '') {
-            this.renderRules();
-            return;
+        // Use the comprehensive rules search if available
+        if (window.mtgRulesSearch) {
+            const searchInput = document.getElementById('rules-search');
+            if (searchInput) {
+                searchInput.value = searchTerm;
+                window.mtgRulesSearch.performSearch();
+            }
         }
-        
-        rulesContainer.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-search" style="font-size: 4rem; color: #ffd700; margin-bottom: 1rem;"></i>
-                <h3>Rules search functionality</h3>
-                <p>Search for: "${searchTerm}"</p>
-            </div>
-        `;
     }
 
     // Dictionary System
@@ -1324,52 +1350,56 @@ class MTGCollectionTracker {
     }
 
     renderDictionary() {
-        this.renderFilteredDictionary(this.dictionary);
+        // Initialize the comprehensive dictionary system
+        if (typeof MTGDictionarySearch !== 'undefined') {
+            if (!window.mtgDictionary) {
+                window.mtgDictionary = new MTGDictionarySearch();
+            }
+        } else {
+            // Fallback if dictionary database isn't loaded
+            const dictionaryContent = document.querySelector('.dictionary-content');
+            if (dictionaryContent) {
+                dictionaryContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book" style="font-size: 4rem; color: #ffd700; margin-bottom: 1rem;"></i>
+                        <h3>Loading Dictionary Database...</h3>
+                        <p>Please wait while the comprehensive dictionary system loads.</p>
+                    </div>
+                `;
+            }
+        }
     }
 
     renderFilteredDictionary(terms) {
-        const termsList = document.getElementById('terms-list');
-        if (!termsList) return;
-        
-        if (terms.length === 0) {
-            termsList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-book" style="font-size: 4rem; color: #ffd700; margin-bottom: 1rem;"></i>
-                    <h3>No terms found</h3>
-                    <p>Try different search criteria.</p>
-                </div>
-            `;
-            return;
+        // This method is now handled by the MTGDictionarySearch class
+        if (window.mtgDictionary) {
+            window.mtgDictionary.renderTermsResults(terms);
         }
-
-        termsList.innerHTML = terms.map(term => `
-            <div class="term-item">
-                <div class="term-name">${term.term}</div>
-                <div class="term-definition">${term.definition}</div>
-            </div>
-        `).join('');
     }
 
     searchDictionary(searchTerm) {
-        const filteredTerms = this.dictionary.filter(term =>
-            term.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            term.definition.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        
-        this.renderFilteredDictionary(filteredTerms);
+        // Use the comprehensive dictionary search if available
+        if (window.mtgDictionary) {
+            const searchInput = document.getElementById('dictionary-search');
+            if (searchInput) {
+                searchInput.value = searchTerm;
+                window.mtgDictionary.performSearch();
+            }
+        }
     }
 
     filterDictionary(category) {
-        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.querySelector(`[data-category="${category}"]`);
-        if (activeBtn) activeBtn.classList.add('active');
-
-        let filteredTerms = this.dictionary;
-        if (category !== 'all') {
-            filteredTerms = this.dictionary.filter(term => term.category === category);
+        // Use the comprehensive dictionary filtering if available
+        if (window.mtgDictionary) {
+            // Update active category button
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-category="${category}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                // Trigger the dictionary's own filtering
+                window.mtgDictionary.performSearch();
+            }
         }
-
-        this.renderFilteredDictionary(filteredTerms);
     }
 
     // Utility Functions

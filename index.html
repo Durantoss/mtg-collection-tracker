@@ -43,6 +43,9 @@
                 <span>MTG Collection Tracker</span>
             </div>
             <div class="nav-menu">
+                <button class="nav-btn admin-nav-btn" id="admin-nav-btn" style="display: none;">
+                    <i class="fas fa-radiation-alt"></i> Admin
+                </button>
                 <button class="nav-btn active" data-tab="collection">
                     <i class="fas fa-cards-blank"></i> Collection
                 </button>
@@ -57,6 +60,9 @@
                 </button>
                 <button class="nav-btn" data-tab="dictionary">
                     <i class="fas fa-spell-check"></i> Dictionary
+                </button>
+                <button class="nav-btn auth-btn" id="auth-btn">
+                    <i class="fas fa-user"></i> <span id="auth-btn-text">Sign In</span>
                 </button>
             </div>
         </nav>
@@ -383,9 +389,6 @@
                 </div>
             </div>
             <div class="user-actions">
-                <button class="btn btn-small btn-secondary" id="admin-panel-btn" style="display: none;">
-                    <i class="fas fa-cog"></i> Admin Panel
-                </button>
                 <button class="btn btn-small btn-secondary" id="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
@@ -474,6 +477,12 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="mtg-rules-database.js"></script>
+    <script src="mtg-dictionary.js"></script>
+    <script src="collection-import-export.js"></script>
+    <script src="enhanced-price-tracker.js"></script>
+    <script src="advanced-search-filters.js"></script>
+    <script src="wishlist-and-stats.js"></script>
     <script src="script.js"></script>
     <script src="price-tracker.js"></script>
     

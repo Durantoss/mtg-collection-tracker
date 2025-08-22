@@ -120,6 +120,115 @@ body {
     box-shadow: 0 4px 20px rgba(102, 187, 106, 0.3);
 }
 
+/* Authentication Button Styles */
+.nav-btn.auth-btn {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+    border-color: #FF9800;
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+    margin-left: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-btn.auth-btn::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.nav-btn.auth-btn:hover {
+    background: linear-gradient(135deg, #F57C00, #E65100);
+    border-color: #F57C00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 152, 0, 0.4);
+}
+
+.nav-btn.auth-btn.authenticated {
+    background: linear-gradient(135deg, #FF6F00, #E65100);
+    border-color: #FF6F00;
+    box-shadow: 0 4px 20px rgba(255, 111, 0, 0.3);
+}
+
+.nav-btn.auth-btn.authenticated:hover {
+    background: linear-gradient(135deg, #E65100, #BF360C);
+    border-color: #E65100;
+    box-shadow: 0 6px 25px rgba(255, 111, 0, 0.4);
+}
+
+.nav-btn.auth-btn i {
+    transition: transform 0.3s ease;
+}
+
+.nav-btn.auth-btn:hover i {
+    transform: scale(1.1);
+}
+
+/* Admin Navigation Button Styles */
+.nav-btn.admin-nav-btn {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+    color: white;
+    border-color: #DC2626;
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+    margin-right: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-btn.admin-nav-btn::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.nav-btn.admin-nav-btn:hover {
+    background: linear-gradient(135deg, #B91C1C, #991B1B);
+    border-color: #B91C1C;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(220, 38, 38, 0.5);
+}
+
+.nav-btn.admin-nav-btn.active {
+    background: linear-gradient(135deg, #991B1B, #7F1D1D);
+    border-color: #991B1B;
+    box-shadow: 0 4px 25px rgba(220, 38, 38, 0.6);
+}
+
+.nav-btn.admin-nav-btn i {
+    transition: transform 0.3s ease;
+    animation: pulse 2s infinite;
+}
+
+.nav-btn.admin-nav-btn:hover i {
+    transform: scale(1.15) rotate(5deg);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Admin button warning glow effect */
+.nav-btn.admin-nav-btn::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #DC2626, #EF4444, #DC2626, #EF4444);
+    border-radius: 27px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-btn.admin-nav-btn:hover::after {
+    opacity: 0.7;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Main Content */
 .main-content {
     flex: 1;
@@ -823,6 +932,12 @@ body {
         min-width: auto;
         flex: 1;
         max-width: 120px;
+    }
+
+    .nav-btn.auth-btn {
+        margin-left: 0;
+        max-width: 100px;
+        flex: 0 0 auto;
     }
 
     .nav-btn i {
