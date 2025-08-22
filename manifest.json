@@ -1,0 +1,51 @@
+{
+  "name": "MTG Collection Tracker",
+  "short_name": "MTG Tracker",
+  "description": "Track your Magic: The Gathering card collection with price monitoring, rules reference, and comprehensive search functionality",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E6F3FF",
+  "theme_color": "#66BB6A",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["games", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyMzAiIGZpbGw9IiM2NkJCNkEiLz48dGV4dCB4PSIyNTYiIHk9IjI4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5NVEc8L3RleHQ+PC9zdmc+",
+      "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Card",
+      "short_name": "Add Card",
+      "description": "Quickly add a new card to your collection",
+      "url": "/?action=add-card"
+    },
+    {
+      "name": "Search Cards",
+      "short_name": "Search",
+      "description": "Search for Magic cards",
+      "url": "/?tab=search"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "MTG Collection Tracker on desktop"
+    },
+    {
+      "src": "screenshots/mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MTG Collection Tracker on mobile"
+    }
+  ]
+}

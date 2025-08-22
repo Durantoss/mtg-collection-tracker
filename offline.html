@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - MTG Collection Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #66BB6A;
+            --soft-mint: #A8E6CF;
+            --sage-green: #8BC34A;
+            --azure-light: #E6F3FF;
+            --azure-medium: #B3D9FF;
+            --cloud-white: #F8FBFF;
+            --charcoal: #37474F;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--azure-light) 0%, var(--cloud-white) 50%, var(--azure-medium) 100%);
+            color: var(--charcoal);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.6;
+        }
+
+        .offline-container {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            border: 1px solid rgba(168, 230, 207, 0.3);
+            box-shadow: 0 20px 60px var(--shadow-light);
+            max-width: 500px;
+            margin: 2rem;
+        }
+
+        .offline-icon {
+            font-size: 4rem;
+            color: var(--primary-green);
+            margin-bottom: 2rem;
+            display: block;
+        }
+
+        .offline-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-green), var(--sage-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .offline-message {
+            font-size: 1.2rem;
+            color: var(--charcoal);
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .offline-features {
+            text-align: left;
+            background: rgba(168, 230, 207, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .offline-features h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .offline-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .offline-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .offline-features li::before {
+            content: '✓';
+            color: var(--sage-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .retry-btn {
+            background: linear-gradient(135deg, var(--primary-green), var(--sage-green));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 187, 106, 0.3);
+            margin-right: 1rem;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 187, 106, 0.4);
+        }
+
+        .home-btn {
+            background: transparent;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .home-btn:hover {
+            background: var(--soft-mint);
+            transform: translateY(-2px);
+        }
+
+        .connection-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .connection-status.online {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .connection-status.offline {
+            background: rgba(255, 152, 0, 0.1);
+            color: #FF9800;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .offline-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .offline-title {
+                font-size: 2rem;
+            }
+
+            .offline-icon {
+                font-size: 3rem;
+            }
+
+            .retry-btn, .home-btn {
+                display: block;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon pulse">🃏</div>
+        <h1 class="offline-title">You're Offline</h1>
+        <p class="offline-message">
+            No internet connection detected. Don't worry, you can still access some features of your MTG Collection Tracker!
+        </p>
+
+        <div class="offline-features">
+            <h3>Available Offline:</h3>
+            <ul>
+                <li>View your saved collection</li>
+                <li>Browse MTG rules reference</li>
+                <li>Search the MTG dictionary</li>
+                <li>View cached card images</li>
+                <li>Access previously loaded data</li>
+            </ul>
+        </div>
+
+        <div class="offline-actions">
+            <button class="retry-btn" onclick="retryConnection()">
+                Try Again
+            </button>
+            <a href="/" class="home-btn">
+                Go to App
+            </a>
+        </div>
+
+        <div id="connection-status" class="connection-status offline">
+            📡 Currently offline - some features may be limited
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            
+            if (navigator.onLine) {
+                statusElement.textContent = '🌐 Connection restored! You can now access all features.';
+                statusElement.className = 'connection-status online';
+                
+                // Auto-redirect after a short delay when back online
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                statusElement.textContent = '📡 Currently offline - some features may be limited';
+                statusElement.className = 'connection-status offline';
+            }
+        }
+
+        // Retry connection
+        function retryConnection() {
+            const button = document.querySelector('.retry-btn');
+            button.textContent = 'Checking...';
+            button.disabled = true;
+            
+            // Check if we can reach the main app
+            fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                .then(() => {
+                    button.textContent = 'Connected!';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                })
+                .catch(() => {
+                    button.textContent = 'Still Offline';
+                    setTimeout(() => {
+                        button.textContent = 'Try Again';
+                        button.disabled = false;
+                    }, 2000);
+                });
+        }
+
+        // Listen for connection changes
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Initial status check
+        updateConnectionStatus();
+
+        // Periodic connection check
+        setInterval(() => {
+            if (!navigator.onLine) {
+                // Try to fetch a small resource to check actual connectivity
+                fetch('/manifest.json', { 
+                    method: 'HEAD', 
+                    cache: 'no-cache',
+                    signal: AbortSignal.timeout(5000)
+                })
+                .then(() => {
+                    // If successful but navigator.onLine is false, update status
+                    if (!navigator.onLine) {
+                        updateConnectionStatus();
+                    }
+                })
+                .catch(() => {
+                    // Confirm we're actually offline
+                    updateConnectionStatus();
+                });
+            }
+        }, 10000); // Check every 10 seconds
+
+        // Service Worker communication
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data.type === 'CACHE_UPDATED') {
+                    const statusElement = document.getElementById('connection-status');
+                    statusElement.textContent = '📦 App updated! New content available.';
+                    statusElement.className = 'connection-status online';
+                }
+            });
+        }
+
+        // Add some interactivity to make the offline experience better
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add click effect to the icon
+            const icon = document.querySelector('.offline-icon');
+            icon.addEventListener('click', () => {
+                icon.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1)';
+                }, 200);
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'r' || e.key === 'R') {
+                    retryConnection();
+                } else if (e.key === 'h' || e.key === 'H') {
+                    window.location.href = '/';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

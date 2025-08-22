@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTG Collection Tracker - Icon Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E6F3FF 0%, #F8FBFF 50%, #B3D9FF 100%);
+            padding: 2rem;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #66BB6A;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .icon-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .icon-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .icon-item h3 {
+            color: #66BB6A;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .icon-svg {
+            margin-bottom: 1rem;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #66BB6A, #8BC34A);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .instructions {
+            background: #e8f5e8;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+            border-left: 4px solid #66BB6A;
+        }
+        
+        .instructions h3 {
+            color: #66BB6A;
+            margin-bottom: 1rem;
+        }
+        
+        .instructions ol {
+            color: #37474F;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 MTG Collection Tracker - PWA Icons</h1>
+        
+        <div class="icon-preview" id="iconPreview">
+            <!-- Icons will be generated here -->
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Right-click on each icon above and select "Save image as..."</li>
+                <li>Save each icon with the exact filename shown (e.g., "icon-192x192.png")</li>
+                <li>Save all icons to the "icons" folder in your project</li>
+                <li>The icons are optimized for PWA requirements and will work on all devices</li>
+                <li>For best results, use an online SVG to PNG converter if needed</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Icon sizes needed for PWA
+        const iconSizes = [
+            { size: 16, name: 'icon-16x16.png' },
+            { size: 32, name: 'icon-32x32.png' },
+            { size: 72, name: 'icon-72x72.png' },
+            { size: 96, name: 'icon-96x96.png' },
+            { size: 128, name: 'icon-128x128.png' },
+            { size: 144, name: 'icon-144x144.png' },
+            { size: 152, name: 'icon-152x152.png' },
+            { size: 192, name: 'icon-192x192.png' },
+            { size: 384, name: 'icon-384x384.png' },
+            { size: 512, name: 'icon-512x512.png' }
+        ];
+
+        // Generate SVG icon
+        function generateIcon(size) {
+            const padding = size * 0.1;
+            const iconSize = size - (padding * 2);
+            const fontSize = iconSize * 0.6;
+            
+            return `
+                <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="bg-gradient-${size}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#66BB6A;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#8BC34A;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#A8E6CF;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="card-gradient-${size}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Background circle -->
+                    <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="url(#bg-gradient-${size})" />
+                    
+                    <!-- Card shape -->
+                    <rect x="${padding + iconSize*0.2}" y="${padding + iconSize*0.15}" 
+                          width="${iconSize*0.6}" height="${iconSize*0.7}" 
+                          rx="${iconSize*0.05}" ry="${iconSize*0.05}" 
+                          fill="url(#card-gradient-${size})" 
+                          stroke="#37474F" stroke-width="${Math.max(1, size*0.01)}" />
+                    
+                    <!-- Magic symbol (stylized) -->
+                    <circle cx="${size/2}" cy="${size/2 - iconSize*0.1}" r="${iconSize*0.08}" fill="#66BB6A" />
+                    <polygon points="${size/2},${size/2 - iconSize*0.25} ${size/2 - iconSize*0.06},${size/2 - iconSize*0.05} ${size/2 + iconSize*0.06},${size/2 - iconSize*0.05}" 
+                             fill="#8BC34A" />
+                    
+                    <!-- MTG text (for larger icons) -->
+                    ${size >= 96 ? `
+                        <text x="${size/2}" y="${size/2 + iconSize*0.25}" 
+                              font-family="Arial, sans-serif" 
+                              font-size="${fontSize*0.2}" 
+                              font-weight="bold" 
+                              text-anchor="middle" 
+                              fill="#37474F">MTG</text>
+                    ` : ''}
+                    
+                    <!-- Shine effect -->
+                    <ellipse cx="${size/2 - iconSize*0.15}" cy="${size/2 - iconSize*0.15}" 
+                             rx="${iconSize*0.1}" ry="${iconSize*0.2}" 
+                             fill="rgba(255,255,255,0.3)" 
+                             transform="rotate(-45 ${size/2 - iconSize*0.15} ${size/2 - iconSize*0.15})" />
+                </svg>
+            `;
+        }
+
+        // Create download function
+        function downloadIcon(svgContent, filename, size) {
+            // Create a canvas to convert SVG to PNG
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+
+            const img = new Image();
+            const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    
+                    URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(link.href);
+                }, 'image/png');
+            };
+
+            img.src = url;
+        }
+
+        // Generate all icons
+        function generateAllIcons() {
+            const container = document.getElementById('iconPreview');
+            
+            iconSizes.forEach(({ size, name }) => {
+                const svgContent = generateIcon(size);
+                
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                
+                iconItem.innerHTML = `
+                    <h3>${name}</h3>
+                    <div class="icon-svg">${svgContent}</div>
+                    <button class="download-btn" onclick="downloadIcon(\`${svgContent.replace(/`/g, '\\`')}\`, '${name}', ${size})">
+                        Download PNG
+                    </button>
+                `;
+                
+                container.appendChild(iconItem);
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', generateAllIcons);
+        
+        // Make downloadIcon available globally
+        window.downloadIcon = downloadIcon;
+    </script>
+</body>
+</html>

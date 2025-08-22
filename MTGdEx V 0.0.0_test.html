@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTG Collection Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-magic"></i>
+                <span>MTG Collection Tracker</span>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn active" data-tab="collection">
+                    <i class="fas fa-cards-blank"></i> Collection
+                </button>
+                <button class="nav-btn" data-tab="search">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="nav-btn" data-tab="prices">
+                    <i class="fas fa-dollar-sign"></i> Prices
+                </button>
+                <button class="nav-btn" data-tab="rules">
+                    <i class="fas fa-book"></i> Rules
+                </button>
+                <button class="nav-btn" data-tab="dictionary">
+                    <i class="fas fa-spell-check"></i> Dictionary
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Collection Tab -->
+            <div class="tab-content active" id="collection">
+                <div class="tab-header">
+                    <h2>My Collection</h2>
+                    <button class="btn btn-primary" id="add-card-btn">
+                        <i class="fas fa-plus"></i> Add Card
+                    </button>
+                </div>
+                
+                <div class="collection-stats">
+                    <div class="stat-card">
+                        <h3>Total Cards</h3>
+                        <span id="total-cards">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Value</h3>
+                        <span id="total-value">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Unique Cards</h3>
+                        <span id="unique-cards">0</span>
+                    </div>
+                </div>
+  
+                <div class="collection-filters">
+                    <input type="text" id="collection-search" placeholder="Search your collection...">
+                    <select id="condition-filter">
+                        <option value="">All Conditions</option>
+                        <option value="Near Mint">Near Mint</option>
+                        <option value="Lightly Played">Lightly Played</option>
+                        <option value="Moderately Played">Moderately Played</option>
+                        <option value="Heavily Played">Heavily Played</option>
+                        <option value="Damaged">Damaged</option>
+                    </select>
+                    <select id="set-filter">
+                        <option value="">All Sets</option>
+                    </select>
+                </div>
+
+                <div class="collection-grid" id="collection-grid">
+                    <!-- Collection cards will be populated here -->
+                </div>
+            </div>
+
+            <!-- Search Tab -->
+            <div class="tab-content" id="search">
+                <div class="tab-header">
+                    <h2>Card Search</h2>
+                </div>
+                
+                <div class="search-form">
+                    <input type="text" id="card-search" placeholder="Search for cards...">
+                    <div class="search-filters">
+                        <select id="color-filter">
+                            <option value="">All Colors</option>
+                            <option value="W">White</option>
+                            <option value="U">Blue</option>
+                            <option value="B">Black</option>
+                            <option value="R">Red</option>
+                            <option value="G">Green</option>
+                            <option value="C">Colorless</option>
+                        </select>
+                        <select id="type-filter">
+                            <option value="">All Types</option>
+                            <option value="Creature">Creature</option>
+                            <option value="Instant">Instant</option>
+                            <option value="Sorcery">Sorcery</option>
+                            <option value="Enchantment">Enchantment</option>
+                            <option value="Artifact">Artifact</option>
+                            <option value="Planeswalker">Planeswalker</option>
+                            <option value="Land">Land</option>
+                        </select>
+                        <button class="btn btn-primary" id="search-btn">Search</button>
+                    </div>
+                </div>
+
+                <div class="search-results" id="search-results">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+
+            <!-- Prices Tab -->
+            <div class="tab-content" id="prices">
+                <div class="tab-header">
+                    <h2>Price Tracking</h2>
+                </div>
+                
+                <div class="price-overview">
+                    <div class="price-chart">
+                        <h3>Collection Value Over Time</h3>
+                        <div class="chart-placeholder">
+                            <p>Price tracking chart will be displayed here</p>
+                        </div>
+                    </div>
+                    
+                    <div class="price-alerts">
+                        <h3>Price Alerts</h3>
+                        <div class="alert-list" id="price-alerts">
+                            <!-- Price alerts will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules Tab -->
+            <div class="tab-content" id="rules">
+                <div class="tab-header">
+                    <h2>MTG Rules Reference</h2>
+                </div>
+                
+                <div class="rules-search">
+                    <input type="text" id="rules-search" placeholder="Search rules...">
+                </div>
+
+                <div class="rules-categories">
+                    <div class="rule-category">
+                        <h3>Basic Rules</h3>
+                        <div class="rule-items">
+                            <div class="rule-item" data-rule="turn-structure">
+                                <h4>Turn Structure</h4>
+                                <p>Each turn consists of five phases: Beginning, Main, Combat, Main, and End.</p>
+                            </div>
+                            <div class="rule-item" data-rule="mana-system">
+                                <h4>Mana System</h4>
+                                <p>Mana is the resource used to cast spells. It comes in five colors plus colorless.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="rule-category">
+                        <h3>Combat Rules</h3>
+                        <div class="rule-items">
+                            <div class="rule-item" data-rule="combat-phases">
+                                <h4>Combat Phases</h4>
+                                <p>Combat consists of: Beginning of Combat, Declare Attackers, Declare Blockers, Combat Damage, End of Combat.</p>
+                            </div>
+                            <div class="rule-item" data-rule="damage-assignment">
+                                <h4>Damage Assignment</h4>
+                                <p>Attacking creatures deal damage equal to their power to defending player or planeswalker.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dictionary Tab -->
+            <div class="tab-content" id="dictionary">
+                <div class="tab-header">
+                    <h2>MTG Dictionary</h2>
+                </div>
+                
+                <div class="dictionary-search">
+                    <input type="text" id="dictionary-search" placeholder="Search terms...">
+                </div>
+
+                <div class="dictionary-content">
+                    <div class="term-categories">
+                        <button class="category-btn active" data-category="all">All</button>
+                        <button class="category-btn" data-category="keywords">Keywords</button>
+                        <button class="category-btn" data-category="mechanics">Mechanics</button>
+                        <button class="category-btn" data-category="formats">Formats</button>
+                    </div>
+
+                    <div class="terms-list" id="terms-list">
+                        <!-- Dictionary terms will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Add Card Modal -->
+        <div class="modal" id="add-card-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Card to Collection</h3>
+                    <button class="close-btn" id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-card-form">
+                        <div class="form-group">
+                            <label for="card-name">Card Name</label>
+                            <input type="text" id="card-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-set">Set</label>
+                            <input type="text" id="card-set">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="card-quantity">Quantity</label>
+                                <input type="number" id="card-quantity" min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="card-condition">Condition</label>
+                                <select id="card-condition">
+                                    <option value="Near Mint">Near Mint</option>
+                                    <option value="Lightly Played">Lightly Played</option>
+                                    <option value="Moderately Played">Moderately Played</option>
+                                    <option value="Heavily Played">Heavily Played</option>
+                                    <option value="Damaged">Damaged</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="card-foil">
+                                    <input type="checkbox" id="card-foil"> Foil
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="purchase-price">Purchase Price</label>
+                                <input type="number" id="purchase-price" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-notes">Notes</label>
+                            <textarea id="card-notes" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancel-add">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Card</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="price-tracker.js"></script>
+</body>
+</html>
