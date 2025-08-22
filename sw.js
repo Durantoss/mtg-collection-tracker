@@ -1,7 +1,7 @@
 // MTG Collection Tracker Service Worker
-const CACHE_NAME = 'mtg-tracker-v1.0.0';
-const STATIC_CACHE_NAME = 'mtg-tracker-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'mtg-tracker-dynamic-v1.0.0';
+const CACHE_NAME = 'mtg-tracker-v1.1.0';
+const STATIC_CACHE_NAME = 'mtg-tracker-static-v1.1.0';
+const DYNAMIC_CACHE_NAME = 'mtg-tracker-dynamic-v1.1.0';
 
 // Files to cache for offline functionality
 const STATIC_FILES = [
@@ -10,6 +10,18 @@ const STATIC_FILES = [
   '/styles.css',
   '/script.js',
   '/price-tracker.js',
+  '/enhanced-price-tracker.js',
+  '/advanced-search-filters.js',
+  '/wishlist-and-stats.js',
+  '/mobile-ui-enhanced.js',
+  '/collection-import-export.js',
+  '/url-import.js',
+  '/mtg-rules-database.js',
+  '/mtg-dictionary.js',
+  '/mobile-fixes.css',
+  '/mobile-ui-enhanced.css',
+  '/rules-dictionary-styles.css',
+  '/supabase-config.js',
   '/manifest.json',
   '/offline.html',
   // Font Awesome (cached from CDN)
@@ -79,8 +91,11 @@ self.addEventListener('fetch', event => {
   }
 
   // Handle different types of requests with appropriate caching strategies
-  if (isStaticFile(request.url)) {
-    // Cache First strategy for static files
+  if (isJavaScriptFile(request.url)) {
+    // Stale While Revalidate for JavaScript files to ensure updates
+    event.respondWith(staleWhileRevalidate(request));
+  } else if (isStaticFile(request.url)) {
+    // Cache First strategy for other static files (CSS, HTML, etc.)
     event.respondWith(cacheFirst(request));
   } else if (isAPIRequest(request.url)) {
     // Network First strategy for API requests
@@ -166,10 +181,13 @@ async function staleWhileRevalidate(request) {
 }
 
 // Helper functions
+function isJavaScriptFile(url) {
+  return url.includes('.js') && !url.includes('font-awesome');
+}
+
 function isStaticFile(url) {
   return STATIC_FILES.some(file => url.includes(file)) ||
          url.includes('.css') ||
-         url.includes('.js') ||
          url.includes('.html') ||
          url.includes('font-awesome');
 }
