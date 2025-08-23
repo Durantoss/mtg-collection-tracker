@@ -175,7 +175,7 @@ Examples:
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                <button class="btn btn-primary" onclick="collectionImportExport.performImport()" id="import-btn" disabled>Import Collection</button>
+                <button class="btn btn-primary" id="import-btn" disabled>Import Collection</button>
             </div>
         `);
 
@@ -275,6 +275,12 @@ Examples:
                 method.classList.add('active');
             });
         });
+
+        // Import button event listener
+        const importBtn = document.getElementById('import-btn');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => this.performImport());
+        }
     }
 
     async handleFileUpload(file) {

@@ -32,9 +32,10 @@ class MTGCollectionTracker {
         this.initializeAuth();
         
         setTimeout(() => {
-            if (window.PriceTracker) {
-                this.priceTracker = new PriceTracker(this);
-            }
+            // Legacy PriceTracker is replaced by EnhancedPriceTracker
+            // if (window.PriceTracker) {
+            //     this.priceTracker = new PriceTracker(this);
+            // }
             if (window.CollectionImportExport) {
                 this.importExport = new CollectionImportExport(this);
                 window.collectionImportExport = this.importExport;
@@ -1023,9 +1024,13 @@ class MTGCollectionTracker {
     renderCardWithPriceSources(card) {
         const prices = card.prices || {};
         const primaryPrice = prices.scryfall?.price || 0;
+        const manaColorClass = this.getManaColorClass(card.manaCost);
+        const manaSymbols = window.manaSymbolRenderer ? 
+            window.manaSymbolRenderer.renderManaSymbols(card.manaCost || '') : 
+            (card.manaCost || '');
         
         return `
-            <div class="card-item">
+            <div class="card-item ${manaColorClass}" data-card-id="${card.id}">
                 ${card.imageUrl ? `
                     <div class="card-image-container">
                         <img src="${card.imageUrl}" alt="${card.name}" class="card-image" loading="lazy">
@@ -1038,6 +1043,7 @@ class MTGCollectionTracker {
                             <div class="card-name">${card.name}</div>
                             <div class="card-set">${card.set}</div>
                             ${card.type ? `<div class="card-type">${card.type}</div>` : ''}
+                            ${card.manaCost ? `<div class="card-mana-cost">${manaSymbols}</div>` : ''}
                         </div>
                         <div class="card-actions">
                             <button class="btn btn-small btn-secondary" onclick="app.editCard(${card.id})" title="Edit Card">
@@ -1442,6 +1448,42 @@ class MTGCollectionTracker {
                 window.mtgDictionary.performSearch();
             }
         }
+    }
+
+    // Mana Color System
+    parseManaColors(manaCost) {
+        if (!manaCost) return { colors: [], identity: 'colorless' };
+        
+        // Extract mana symbols from cost like {2}{R}{R} or {W}{U}{B}
+        const colorMatches = manaCost.match(/\{([WUBRG])\}/g) || [];
+        const colors = [...new Set(colorMatches.map(match => match.replace(/[{}]/g, '')))];
+        
+        // Determine color identity
+        let identity;
+        if (colors.length === 0) {
+            identity = 'colorless';
+        } else if (colors.length === 1) {
+            const colorMap = { W: 'white', U: 'blue', B: 'black', R: 'red', G: 'green' };
+            identity = colorMap[colors[0]];
+        } else if (colors.length === 2) {
+            identity = 'multicolor-2';
+        } else {
+            identity = 'multicolor-3plus';
+        }
+        
+        return { colors, identity };
+    }
+
+    getManaColorClass(manaCost) {
+        const { identity, colors } = this.parseManaColors(manaCost);
+        
+        if (identity === 'multicolor-2') {
+            // Create specific class for two-color combinations
+            const sortedColors = colors.sort().join('');
+            return `mana-multicolor-2 mana-${sortedColors.toLowerCase()}`;
+        }
+        
+        return `mana-${identity}`;
     }
 
     // Utility Functions

@@ -2601,3 +2601,132 @@ body::before {
     pointer-events: none;
     z-index: -1;
 }
+
+/* Mana Color Coding System */
+/* Single Color Backgrounds */
+.mana-white {
+    background: linear-gradient(135deg, #FFFBD5 0%, #F5F5DC 100%) !important;
+    color: #333 !important;
+    border-color: #E6E6FA !important;
+}
+
+.mana-blue {
+    background: linear-gradient(135deg, #0E68AB 0%, #000080 100%) !important;
+    color: white !important;
+    border-color: #4169E1 !important;
+}
+
+.mana-black {
+    background: linear-gradient(135deg, #150B00 0%, #1C1C1C 100%) !important;
+    color: white !important;
+    border-color: #2F2F2F !important;
+}
+
+.mana-red {
+    background: linear-gradient(135deg, #D3202A 0%, #8B0000 100%) !important;
+    color: white !important;
+    border-color: #DC143C !important;
+}
+
+.mana-green {
+    background: linear-gradient(135deg, #00733E 0%, #006400 100%) !important;
+    color: white !important;
+    border-color: #228B22 !important;
+}
+
+.mana-colorless {
+    background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%) !important;
+    color: #333 !important;
+    border-color: #A9A9A9 !important;
+}
+
+/* Two-Color Combinations */
+.mana-multicolor-2 {
+    background: linear-gradient(45deg, var(--color1, #DAA520) 0%, var(--color2, #B8860B) 100%) !important;
+    color: white !important;
+    border-color: #FFD700 !important;
+}
+
+/* Specific two-color combinations */
+.mana-bw { background: linear-gradient(45deg, #1C1C1C 0%, #F5F5DC 50%, #1C1C1C 100%) !important; }
+.mana-br { background: linear-gradient(45deg, #1C1C1C 0%, #8B0000 100%) !important; }
+.mana-bg { background: linear-gradient(45deg, #1C1C1C 0%, #006400 100%) !important; }
+.mana-bu { background: linear-gradient(45deg, #1C1C1C 0%, #000080 100%) !important; }
+.mana-gr { background: linear-gradient(45deg, #006400 0%, #8B0000 100%) !important; }
+.mana-gu { background: linear-gradient(45deg, #006400 0%, #000080 100%) !important; }
+.mana-gw { background: linear-gradient(45deg, #006400 0%, #F5F5DC 100%) !important; }
+.mana-ru { background: linear-gradient(45deg, #8B0000 0%, #000080 100%) !important; }
+.mana-rw { background: linear-gradient(45deg, #8B0000 0%, #F5F5DC 100%) !important; }
+.mana-uw { background: linear-gradient(45deg, #000080 0%, #F5F5DC 100%) !important; }
+
+/* Three or More Colors */
+.mana-multicolor-3plus {
+    background: linear-gradient(135deg, #DAA520 0%, #B8860B 50%, #CD853F 100%) !important;
+    color: white !important;
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 20px rgba(218, 165, 32, 0.3) !important;
+}
+
+/* Mana color card enhancements */
+.card-item.mana-white .card-name,
+.card-item.mana-white .card-set {
+    color: #2F4F4F !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.card-item.mana-blue .card-name,
+.card-item.mana-blue .card-set,
+.card-item.mana-black .card-name,
+.card-item.mana-black .card-set,
+.card-item.mana-red .card-name,
+.card-item.mana-red .card-set,
+.card-item.mana-green .card-name,
+.card-item.mana-green .card-set,
+.card-item.mana-multicolor-2 .card-name,
+.card-item.mana-multicolor-2 .card-set,
+.card-item.mana-multicolor-3plus .card-name,
+.card-item.mana-multicolor-3plus .card-set {
+    color: #FFD700 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.card-item.mana-colorless .card-name,
+.card-item.mana-colorless .card-set {
+    color: #2F2F2F !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Ensure text readability on colored backgrounds */
+.card-item[class*="mana-"] .card-detail span {
+    color: inherit !important;
+    opacity: 0.9;
+}
+
+.card-item[class*="mana-"] .price-sources-header {
+    color: #FFD700 !important;
+}
+
+.card-item.mana-white .price-sources-header {
+    color: #8B4513 !important;
+}
+
+.card-item.mana-colorless .price-sources-header {
+    color: #4169E1 !important;
+}
+
+/* Hover effects for mana colored cards */
+.card-item[class*="mana-"]:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Mobile adjustments for mana colors */
+@media (max-width: 768px) {
+    .card-item[class*="mana-"] {
+        border-width: 2px;
+    }
+    
+    .card-item[class*="mana-"]:hover {
+        transform: translateY(-5px) scale(1.01);
+    }
+}
