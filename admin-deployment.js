@@ -6,6 +6,7 @@ class AdminDeployment {
         this.deploymentHistory = [];
         this.currentDeployment = null;
         this.isDeploying = false;
+        this.vercelClient = null;
         
         // Initialize deployment functionality
         this.init();
@@ -99,32 +100,182 @@ class AdminDeployment {
     }
 
     async executeVercelDeployment(target, deploymentId) {
-        // Simulate Vercel SDK deployment process
-        // In a real implementation, this would use the actual Vercel SDK
+        try {
+            // Initialize Vercel client if not already done
+            if (!this.vercelClient) {
+                await this.initializeVercelClient();
+            }
+
+            this.logMessage('📋 Validating repository access...');
+            
+            // Get project information
+            const projectName = 'mtg-collection-tracker';
+            this.logMessage(`🔍 Deploying project: ${projectName}`);
+            
+            // For browser-based deployment, we'll use GitHub integration
+            // Since the Vercel SDK is primarily for server-side use
+            this.logMessage('🔗 Triggering deployment via GitHub integration...');
+            
+            // Create deployment using GitHub integration
+            const deployment = await this.createGitHubDeployment(projectName, target);
+            
+            if (deployment) {
+                this.logMessage('📦 Building application...');
+                
+                // Monitor deployment status
+                const finalDeployment = await this.monitorDeployment(deployment.id);
+                
+                this.logMessage('✅ Deployment completed successfully!');
+                
+                return {
+                    success: true,
+                    deploymentId: finalDeployment.id,
+                    url: finalDeployment.url,
+                    status: finalDeployment.state
+                };
+            } else {
+                throw new Error('Failed to create deployment');
+            }
+            
+        } catch (error) {
+            this.logMessage(`❌ Deployment error: ${error.message}`);
+            throw error;
+        }
+    }
+
+    async initializeVercelClient() {
+        // For browser-based deployment, we'll use fetch API to interact with Vercel
+        // Note: In production, you'd want to use environment variables for the token
+        this.logMessage('🔐 Initializing Vercel client...');
         
-        this.logMessage('📋 Validating repository access...');
-        await this.delay(1000);
+        // Check if we have a Vercel token (this would be set by admin)
+        const vercelToken = await this.getVercelToken();
+        if (!vercelToken) {
+            throw new Error('Vercel API token not configured. Please contact administrator.');
+        }
         
-        this.logMessage('🔍 Checking for changes...');
-        await this.delay(1500);
-        
-        this.logMessage('📦 Building application...');
-        await this.delay(3000);
-        
-        this.logMessage('🌐 Deploying to Vercel...');
-        await this.delay(2000);
-        
-        this.logMessage('✅ Deployment completed successfully!');
-        
-        // Simulate successful deployment
-        return {
-            success: true,
-            deploymentId: deploymentId,
-            url: target === 'production' 
-                ? 'https://mtg-collection-tracker.vercel.app' 
-                : `https://mtg-collection-tracker-${deploymentId.slice(-8)}.vercel.app`,
-            status: 'ready'
+        this.vercelClient = {
+            token: vercelToken,
+            baseURL: 'https://api.vercel.com'
         };
+    }
+
+    async getVercelToken() {
+        // In a real implementation, this would be stored securely
+        // For now, we'll use a placeholder that requires admin configuration
+        const token = localStorage.getItem('vercel_admin_token');
+        if (!token) {
+            // Show configuration prompt for admin
+            this.showVercelTokenPrompt();
+            return null;
+        }
+        return token;
+    }
+
+    showVercelTokenPrompt() {
+        const modal = document.createElement('div');
+        modal.className = 'vercel-token-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <h3>Configure Vercel API Token</h3>
+                    <p>To enable real deployments, please enter your Vercel API token:</p>
+                    <input type="password" id="vercel-token-input" placeholder="Enter Vercel API token">
+                    <div class="modal-actions">
+                        <button id="save-token-btn" class="btn btn-primary">Save Token</button>
+                        <button id="cancel-token-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                    <p class="token-help">
+                        <small>Get your token from <a href="https://vercel.com/account/tokens" target="_blank">Vercel Account Settings</a></small>
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Handle save button
+        document.getElementById('save-token-btn').addEventListener('click', () => {
+            const token = document.getElementById('vercel-token-input').value.trim();
+            if (token) {
+                localStorage.setItem('vercel_admin_token', token);
+                modal.remove();
+                this.showNotification('Vercel token saved successfully!', 'success');
+            }
+        });
+        
+        // Handle cancel button
+        document.getElementById('cancel-token-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+    }
+
+    async createGitHubDeployment(projectName, target) {
+        try {
+            // Use Vercel API to trigger deployment
+            const response = await fetch(`${this.vercelClient.baseURL}/v13/deployments`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.vercelClient.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: projectName,
+                    gitSource: {
+                        type: 'github',
+                        repo: 'Durantoss/mtg-collection-tracker',
+                        ref: 'main'
+                    },
+                    target: target === 'production' ? 'production' : 'preview'
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Failed to create deployment');
+            }
+
+            return await response.json();
+        } catch (error) {
+            this.logMessage(`❌ GitHub deployment error: ${error.message}`);
+            throw error;
+        }
+    }
+
+    async monitorDeployment(deploymentId) {
+        const maxAttempts = 30; // 5 minutes max
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+            try {
+                const response = await fetch(`${this.vercelClient.baseURL}/v13/deployments/${deploymentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.vercelClient.token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const deployment = await response.json();
+                    
+                    if (deployment.state === 'READY') {
+                        return deployment;
+                    } else if (deployment.state === 'ERROR') {
+                        throw new Error('Deployment failed');
+                    } else {
+                        this.logMessage(`📊 Deployment status: ${deployment.state}`);
+                        await this.delay(10000); // Wait 10 seconds
+                    }
+                } else {
+                    throw new Error('Failed to check deployment status');
+                }
+            } catch (error) {
+                this.logMessage(`⚠️ Status check error: ${error.message}`);
+            }
+            
+            attempts++;
+        }
+        
+        throw new Error('Deployment timeout - please check Vercel dashboard');
     }
 
     handleDeploymentSuccess(result, target, startTime) {
