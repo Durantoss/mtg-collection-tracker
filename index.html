@@ -7,8 +7,8 @@
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Track your Magic: The Gathering card collection with price monitoring, rules reference, and comprehensive search functionality">
-    <meta name="theme-color" content="#66BB6A">
-    <meta name="background-color" content="#E6F3FF">
+    <meta name="theme-color" content="#4b0082">
+    <meta name="background-color" content="#1e1e2f">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -21,11 +21,14 @@
     
     <!-- Windows PWA Support -->
     <meta name="msapplication-TileImage" content="icons/icon-144x144.png">
-    <meta name="msapplication-TileColor" content="#66BB6A">
+    <meta name="msapplication-TileColor" content="#2a1a4d">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
@@ -34,82 +37,102 @@
     <link rel="stylesheet" href="mobile-phone-optimized.css">
     <link rel="stylesheet" href="import-progress-styles.css">
     <link rel="stylesheet" href="card-scanner.css">
-    <!-- Mobile UI enhancements deployed: 2025-08-22 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Supabase JavaScript Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <!-- Blockhash for image duplicate detection -->
+    <script src="https://cdn.jsdelivr.net/npm/blockhash-core@1.0.0/dist/blockhash.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Navigation -->
-        <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-magic"></i>
-                <span>MTG Collection Tracker</span>
-            </div>
-            <div class="nav-menu">
-                <button class="nav-btn admin-nav-btn" id="admin-nav-btn" style="display: none;">
-                    <i class="fas fa-radiation-alt"></i> Admin
-                </button>
-                <button class="nav-btn active" data-tab="collection">
-                    <i class="fas fa-cards-blank"></i> Collection
-                </button>
-                <button class="nav-btn" data-tab="search">
-                    <i class="fas fa-search"></i> Search
-                </button>
-                <button class="nav-btn" data-tab="prices">
-                    <i class="fas fa-dollar-sign"></i> Prices
-                </button>
-                <button class="nav-btn" data-tab="rules">
-                    <i class="fas fa-book"></i> Rules
-                </button>
-                <button class="nav-btn" data-tab="dictionary">
-                    <i class="fas fa-spell-check"></i> Dictionary
-                </button>
-                <button class="nav-btn auth-btn" id="auth-btn">
-                    <i class="fas fa-user"></i> <span id="auth-btn-text">Sign In</span>
-                </button>
-            </div>
-        </nav>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <h1 class="logo">MTG Tracker</h1>
+            <nav>
+                <ul>
+                    <li class="nav-item active" data-tab="collection">
+                        <i class="fas fa-cards-blank"></i> Collection
+                    </li>
+                    <li class="nav-item admin-nav-item" data-tab="admin" style="display: none;">
+                        <i class="fas fa-radiation-alt"></i> Admin
+                    </li>
+                    <li class="nav-item" data-tab="search">
+                        <i class="fas fa-search"></i> Search
+                    </li>
+                    <li class="nav-item" data-tab="prices">
+                        <i class="fas fa-dollar-sign"></i> Prices
+                    </li>
+                    <li class="nav-item" data-tab="rules">
+                        <i class="fas fa-book"></i> Rules
+                    </li>
+                    <li class="nav-item" data-tab="dictionary">
+                        <i class="fas fa-spell-check"></i> Dictionary
+                    </li>
+                    <li class="nav-item" data-tab="deck-builder">
+                        <i class="fas fa-hammer"></i> Deck Builder
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Collection Tab -->
-            <div class="tab-content active" id="collection">
-                <div class="tab-header">
-                    <h2>My Collection</h2>
-                    <div class="header-actions">
-                        <button class="btn btn-scanner" id="scan-card-btn">
-                            <i class="fas fa-camera"></i> Scan Card
-                        </button>
-                        <button class="btn btn-primary" id="add-card-btn">
-                            <i class="fas fa-plus"></i> Add Card
-                        </button>
-                    </div>
+            <!-- User Profile -->
+            <div class="user-profile">
+                <div class="avatar"></div>
+                <div class="user-info">
+                    <span class="username" id="current-username">Guest</span>
+                    <span class="role" id="current-role">USER</span>
                 </div>
-                
-                <div class="collection-stats">
+                <button class="logout" id="auth-btn">
+                    <span id="auth-btn-text">Sign In</span>
+                </button>
+            </div>
+
+            <!-- Collection Section -->
+            <section class="collection-section tab-content active" id="collection">
+                <h2>My Collection</h2>
+                <div class="stats">
                     <div class="stat-card">
                         <h3>Total Cards</h3>
-                        <span id="total-cards">0</span>
+                        <p id="total-cards">0</p>
                     </div>
                     <div class="stat-card">
                         <h3>Total Value</h3>
-                        <span id="total-value">$0.00</span>
+                        <p id="total-value">$0.00</p>
                     </div>
                     <div class="stat-card">
                         <h3>Unique Cards</h3>
-                        <span id="unique-cards">0</span>
+                        <p id="unique-cards">0</p>
                     </div>
                 </div>
-                
-                <div class="stats-disclaimer">
-                    <i class="fas fa-info-circle"></i> Collection values are estimates based on third-party pricing data and may not reflect actual market values.
+
+                <!-- Action Buttons -->
+                <div class="actions">
+                    <button class="scan" id="scan-card-btn">
+                        <i class="fas fa-camera"></i> Scan Card
+                    </button>
+                    <button class="add" id="add-card-btn">
+                        <i class="fas fa-plus"></i> Add Card
+                    </button>
                 </div>
 
-                <div class="collection-filters">
-                    <input type="text" id="collection-search" placeholder="Search your collection...">
+                <!-- Search & Filters -->
+                <div class="search-bar">
+                    <input type="text" id="collection-search" placeholder="Search your collection..." />
                     <select id="condition-filter">
                         <option value="">All Conditions</option>
                         <option value="Near Mint">Near Mint</option>
@@ -121,19 +144,21 @@
                     <select id="set-filter">
                         <option value="">All Sets</option>
                     </select>
+                    <button class="search-btn">Search</button>
                 </div>
 
+                <!-- Collection Grid -->
                 <div class="collection-grid" id="collection-grid">
                     <!-- Collection cards will be populated here -->
                 </div>
-            </div>
+
+                <!-- Empty State Message -->
+                <p class="empty-message">No cards in your collection yet.<br>Click 'Add Card' to start building your collection!</p>
+            </section>
 
             <!-- Search Tab -->
             <div class="tab-content" id="search">
-                <div class="tab-header">
-                    <h2>Card Search</h2>
-                </div>
-                
+                <h2>Card Search</h2>
                 <div class="search-form">
                     <input type="text" id="card-search" placeholder="Search for cards...">
                     <div class="search-filters">
@@ -158,7 +183,6 @@
                         </select>
                         <select id="search-set-filter">
                             <option value="">All Sets</option>
-                            <!-- Sets will be populated dynamically -->
                         </select>
                         <div class="search-options">
                             <label class="checkbox-label">
@@ -170,7 +194,6 @@
                         <button class="btn btn-primary" id="search-btn">Search</button>
                     </div>
                 </div>
-
                 <div class="search-results" id="search-results">
                     <!-- Search results will be populated here -->
                 </div>
@@ -178,14 +201,10 @@
 
             <!-- Prices Tab -->
             <div class="tab-content" id="prices">
-                <div class="tab-header">
-                    <h2>Price Tracking</h2>
-                </div>
-                
+                <h2>Price Tracking</h2>
                 <div class="price-disclaimer">
                     <i class="fas fa-exclamation-triangle"></i> Price data is provided for informational purposes only. Actual market values may vary significantly from displayed estimates.
                 </div>
-                
                 <div class="price-overview">
                     <div class="price-chart">
                         <h3>Collection Value Over Time</h3>
@@ -193,7 +212,6 @@
                             <p>Price tracking chart will be displayed here</p>
                         </div>
                     </div>
-                    
                     <div class="price-alerts">
                         <h3>Price Alerts</h3>
                         <div class="alert-list" id="price-alerts">
@@ -205,14 +223,10 @@
 
             <!-- Rules Tab -->
             <div class="tab-content" id="rules">
-                <div class="tab-header">
-                    <h2>MTG Rules Reference</h2>
-                </div>
-                
+                <h2>MTG Rules Reference</h2>
                 <div class="rules-search">
                     <input type="text" id="rules-search" placeholder="Search rules...">
                 </div>
-
                 <div class="rules-categories">
                     <div class="rule-category">
                         <h3>Basic Rules</h3>
@@ -227,7 +241,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="rule-category">
                         <h3>Combat Rules</h3>
                         <div class="rule-items">
@@ -246,14 +259,10 @@
 
             <!-- Dictionary Tab -->
             <div class="tab-content" id="dictionary">
-                <div class="tab-header">
-                    <h2>MTG Dictionary</h2>
-                </div>
-                
+                <h2>MTG Dictionary</h2>
                 <div class="dictionary-search">
                     <input type="text" id="dictionary-search" placeholder="Search terms...">
                 </div>
-
                 <div class="dictionary-content">
                     <div class="term-categories">
                         <button class="category-btn active" data-category="all">All</button>
@@ -261,232 +270,345 @@
                         <button class="category-btn" data-category="mechanics">Mechanics</button>
                         <button class="category-btn" data-category="formats">Formats</button>
                     </div>
-
                     <div class="terms-list" id="terms-list">
                         <!-- Dictionary terms will be populated here -->
                     </div>
                 </div>
             </div>
-        </main>
 
-        <!-- Add Card Modal -->
-        <div class="modal" id="add-card-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Add Card to Collection</h3>
-                    <button class="close-btn" id="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="add-card-form">
-                        <div class="form-group">
-                            <label for="card-name">Card Name</label>
-                            <input type="text" id="card-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="card-set">Set</label>
-                            <input type="text" id="card-set">
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="card-quantity">Quantity</label>
-                                <input type="number" id="card-quantity" min="1" value="1">
-                            </div>
-                            <div class="form-group">
-                                <label for="card-condition">Condition</label>
-                                <select id="card-condition">
-                                    <option value="Near Mint">Near Mint</option>
-                                    <option value="Lightly Played">Lightly Played</option>
-                                    <option value="Moderately Played">Moderately Played</option>
-                                    <option value="Heavily Played">Heavily Played</option>
-                                    <option value="Damaged">Damaged</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="card-foil">
-                                    <input type="checkbox" id="card-foil"> Foil
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label for="purchase-price">Purchase Price</label>
-                                <input type="number" id="purchase-price" step="0.01" min="0">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="card-notes">Notes</label>
-                            <textarea id="card-notes" rows="3"></textarea>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" id="cancel-add">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Add Card</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Login Modal -->
-        <div class="modal" id="login-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Sign In</h3>
-                    <button class="close-btn" id="close-login-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="login-form">
-                        <div class="form-group">
-                            <label for="login-email">Email</label>
-                            <input type="email" id="login-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="login-password">Password</label>
-                            <input type="password" id="login-password" required>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" id="show-register">Create Account</button>
-                            <button type="submit" class="btn btn-primary">Sign In</button>
-                        </div>
-                    </form>
-                    <div id="login-error" class="error-message" style="display: none;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Registration Modal -->
-        <div class="modal" id="register-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Create Account</h3>
-                    <button class="close-btn" id="close-register-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="register-form">
-                        <div class="form-group">
-                            <label for="register-email">Email</label>
-                            <input type="email" id="register-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-username">Username</label>
-                            <input type="text" id="register-username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-password">Password</label>
-                            <input type="password" id="register-password" required minlength="6">
-                        </div>
-                        <div class="form-group">
-                            <label for="register-invite-code">Invite Code</label>
-                            <input type="text" id="register-invite-code" required placeholder="Enter your invite code">
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" id="show-login">Back to Sign In</button>
-                            <button type="submit" class="btn btn-primary">Create Account</button>
-                        </div>
-                    </form>
-                    <div id="register-error" class="error-message" style="display: none;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Menu -->
-        <div class="user-menu" id="user-menu" style="display: none;">
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-details">
-                    <span class="username" id="current-username">Username</span>
-                    <span class="user-role" id="current-role">User</span>
-                </div>
-            </div>
-            <div class="user-actions">
-                <button class="btn btn-small btn-secondary" id="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </div>
-
-        <!-- Admin Panel Modal -->
-        <div class="modal" id="admin-modal">
-            <div class="modal-content admin-modal-content">
-                <div class="modal-header">
-                    <h3>Admin Panel</h3>
-                    <button class="close-btn" id="close-admin-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="admin-tabs">
-                        <button class="admin-tab-btn active" data-admin-tab="users">Users</button>
-                        <button class="admin-tab-btn" data-admin-tab="invites">Invite Codes</button>
-                        <button class="admin-tab-btn" data-admin-tab="stats">Statistics</button>
-                    </div>
-                    
-                    <div class="admin-tab-content active" id="admin-users">
-                        <div class="admin-section-header">
-                            <h4>User Management</h4>
-                            <span class="user-count">Users: <span id="total-users">0</span>/15</span>
-                        </div>
-                        <div class="users-list" id="users-list">
-                            <!-- Users will be populated here -->
-                        </div>
-                    </div>
-                    
-                    <div class="admin-tab-content" id="admin-invites">
-                        <div class="admin-section-header">
-                            <h4>Invite Codes</h4>
-                            <button class="btn btn-primary" id="generate-invite-btn">
-                                <i class="fas fa-plus"></i> Generate Code
+            <!-- Deck Builder Tab -->
+            <div class="tab-content" id="deck-builder">
+                <h2><i class="fas fa-hammer"></i> Build Your Deck</h2>
+                
+                <!-- Deck Management -->
+                <div class="deck-management">
+                    <div class="deck-header">
+                        <input type="text" id="deck-name" placeholder="Enter deck name..." class="deck-name-input" />
+                        <div class="deck-actions">
+                            <button class="btn btn-secondary" id="save-deck">
+                                <i class="fas fa-save"></i> Save Deck
+                            </button>
+                            <button class="btn btn-secondary" id="load-deck">
+                                <i class="fas fa-folder-open"></i> Load Deck
+                            </button>
+                            <button class="btn btn-primary" id="export-deck">
+                                <i class="fas fa-download"></i> Export
                             </button>
                         </div>
-                        <div class="invites-list" id="invites-list">
-                            <!-- Invite codes will be populated here -->
-                        </div>
                     </div>
                     
-                    <div class="admin-tab-content" id="admin-stats">
-                        <div class="admin-section-header">
-                            <h4>System Statistics</h4>
+                    <!-- Deck Stats -->
+                    <div class="deck-stats">
+                        <div class="stat-card">
+                            <h4>Total Cards</h4>
+                            <span id="deck-total-cards">0</span>
                         </div>
-                        <div class="admin-stats-grid">
-                            <div class="admin-stat-card">
-                                <h5>Total Collections</h5>
-                                <span id="total-collections">0</span>
+                        <div class="stat-card">
+                            <h4>Creatures</h4>
+                            <span id="deck-creatures">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Spells</h4>
+                            <span id="deck-spells">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Lands</h4>
+                            <span id="deck-lands">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Avg. CMC</h4>
+                            <span id="deck-avg-cmc">0.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Cards Section -->
+                <div class="add-cards-section">
+                    <h3>Add Cards to Deck</h3>
+                    <div class="card-search-deck">
+                        <input type="text" id="deck-card-search" placeholder="Search your collection or card database..." />
+                        <button class="btn btn-primary" id="search-cards-for-deck">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Add from Collection -->
+                    <div class="quick-add-section">
+                        <h4>Quick Add from Collection</h4>
+                        <div class="collection-cards-preview" id="collection-cards-preview">
+                            <!-- Collection cards will be shown here for quick adding -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Deck -->
+                <div class="current-deck">
+                    <h3>Current Deck</h3>
+                    <div class="deck-list" id="deck-list">
+                        <div class="empty-deck-message">
+                            <i class="fas fa-cards-blank"></i>
+                            <p>Your deck is empty</p>
+                            <p>Search for cards above to start building your deck!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mana Curve Chart -->
+                <div class="mana-curve-section">
+                    <h3>Mana Curve</h3>
+                    <div class="mana-curve-chart" id="mana-curve-chart">
+                        <div class="curve-bars">
+                            <div class="curve-bar" data-cmc="0">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">0</span>
+                                <span class="bar-count">0</span>
                             </div>
-                            <div class="admin-stat-card">
-                                <h5>Total Cards</h5>
-                                <span id="total-cards-admin">0</span>
+                            <div class="curve-bar" data-cmc="1">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">1</span>
+                                <span class="bar-count">0</span>
                             </div>
-                            <div class="admin-stat-card">
-                                <h5>Active Users</h5>
-                                <span id="active-users">0</span>
+                            <div class="curve-bar" data-cmc="2">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">2</span>
+                                <span class="bar-count">0</span>
                             </div>
-                            <div class="admin-stat-card">
-                                <h5>Available Invites</h5>
-                                <span id="available-invites">0</span>
+                            <div class="curve-bar" data-cmc="3">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">3</span>
+                                <span class="bar-count">0</span>
                             </div>
+                            <div class="curve-bar" data-cmc="4">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">4</span>
+                                <span class="bar-count">0</span>
+                            </div>
+                            <div class="curve-bar" data-cmc="5">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">5</span>
+                                <span class="bar-count">0</span>
+                            </div>
+                            <div class="curve-bar" data-cmc="6">
+                                <div class="bar-fill" style="height: 0%"></div>
+                                <span class="bar-label">6+</span>
+                                <span class="bar-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer>
+                <p>For informational and educational purposes only. Prices are estimates and may not reflect actual market values.</p>
+                <p>© 2025 MTG Collection Tracker · Not affiliated with Wizards of the Coast.</p>
+                <button class="install-app" id="pwa-install-btn" style="display: none;">Install App</button>
+            </footer>
+        </main>
+    </div>
+
+    <!-- All existing modals preserved -->
+    <!-- Add Card Modal -->
+    <div class="modal" id="add-card-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Card to Collection</h3>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-card-form">
+                    <div class="form-group">
+                        <label for="card-name">Card Name</label>
+                        <input type="text" id="card-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-set">Set</label>
+                        <input type="text" id="card-set">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="card-quantity">Quantity</label>
+                            <input type="number" id="card-quantity" min="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="card-condition">Condition</label>
+                            <select id="card-condition">
+                                <option value="Near Mint">Near Mint</option>
+                                <option value="Lightly Played">Lightly Played</option>
+                                <option value="Moderately Played">Moderately Played</option>
+                                <option value="Heavily Played">Heavily Played</option>
+                                <option value="Damaged">Damaged</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="card-foil">
+                                <input type="checkbox" id="card-foil"> Foil
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchase-price">Purchase Price</label>
+                            <input type="number" id="purchase-price" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-notes">Notes</label>
+                        <textarea id="card-notes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-add">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Card</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sign In</h3>
+                <button class="close-btn" id="close-login-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="show-register">Create Account</button>
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </div>
+                </form>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Account</h3>
+                <button class="close-btn" id="close-register-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-invite-code">Invite Code</label>
+                        <input type="text" id="register-invite-code" required placeholder="Enter your invite code">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="show-login">Back to Sign In</button>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </div>
+                </form>
+                <div id="register-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Menu -->
+    <div class="user-menu" id="user-menu" style="display: none;">
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <span class="username" id="menu-username">Username</span>
+                <span class="user-role" id="menu-role">User</span>
+            </div>
+        </div>
+        <div class="user-actions">
+            <button class="btn btn-small btn-secondary" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div class="modal" id="admin-modal">
+        <div class="modal-content admin-modal-content">
+            <div class="modal-header">
+                <h3>Admin Panel</h3>
+                <button class="close-btn" id="close-admin-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" data-admin-tab="users">Users</button>
+                    <button class="admin-tab-btn" data-admin-tab="invites">Invite Codes</button>
+                    <button class="admin-tab-btn" data-admin-tab="stats">Statistics</button>
+                </div>
+                
+                <div class="admin-tab-content active" id="admin-users">
+                    <div class="admin-section-header">
+                        <h4>User Management</h4>
+                        <span class="user-count">Users: <span id="total-users">0</span>/15</span>
+                    </div>
+                    <div class="users-list" id="users-list">
+                        <!-- Users will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="admin-tab-content" id="admin-invites">
+                    <div class="admin-section-header">
+                        <h4>Invite Codes</h4>
+                        <button class="btn btn-primary" id="generate-invite-btn">
+                            <i class="fas fa-plus"></i> Generate Code
+                        </button>
+                    </div>
+                    <div class="invites-list" id="invites-list">
+                        <!-- Invite codes will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="admin-tab-content" id="admin-stats">
+                    <div class="admin-section-header">
+                        <h4>System Statistics</h4>
+                    </div>
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-card">
+                            <h5>Total Collections</h5>
+                            <span id="total-collections">0</span>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h5>Total Cards</h5>
+                            <span id="total-cards-admin">0</span>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h5>Active Users</h5>
+                            <span id="active-users">0</span>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h5>Available Invites</h5>
+                            <span id="available-invites">0</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Legal Footer -->
-        <footer class="app-footer">
-            <div class="footer-content">
-                <div class="footer-disclaimer">
-                    <i class="fas fa-info-circle"></i>
-                    <span>For informational and educational purposes only. Prices are estimates and may not reflect actual market values.</span>
-                </div>
-                <div class="footer-links">
-                    <a href="terms.html" class="footer-link">Terms of Service</a>
-                    <span class="footer-separator">•</span>
-                    <span class="footer-copyright">© 2025 MTG Collection Tracker</span>
-                    <span class="footer-separator">•</span>
-                    <span class="footer-notice">Not affiliated with Wizards of the Coast</span>
-                </div>
-            </div>
-        </footer>
     </div>
 
+    <!-- All JavaScript files preserved -->
     <script src="supabase-config.js"></script>
     <script src="mtg-rules-database.js"></script>
     <script src="mtg-dictionary.js"></script>
@@ -498,6 +620,7 @@
     <script src="mobile-ui-enhanced.js"></script>
     <script src="mana-symbols.js"></script>
     <script src="card-scanner.js"></script>
+    <script src="deck-builder.js"></script>
     <script src="script.js"></script>
     <script src="price-tracker.js"></script>
     
@@ -515,7 +638,6 @@
                         const newWorker = registration.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New content is available, show update notification
                                 showUpdateNotification();
                             }
                         });
@@ -526,7 +648,6 @@
                 }
             });
             
-            // Listen for service worker messages
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data.type === 'CACHE_UPDATED') {
                     console.log('Cache updated, new content available');
@@ -554,21 +675,10 @@
         });
         
         function showInstallButton() {
-            // Create install button if it doesn't exist
-            if (!installButton) {
-                installButton = document.createElement('button');
-                installButton.className = 'btn btn-primary install-btn';
-                installButton.innerHTML = '<i class="fas fa-download"></i> Install App';
-                installButton.style.cssText = `
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    z-index: 1000;
-                    box-shadow: 0 4px 20px rgba(102, 187, 106, 0.4);
-                    animation: slideInUp 0.3s ease;
-                `;
-                
-                installButton.addEventListener('click', async () => {
+            const installBtn = document.getElementById('pwa-install-btn');
+            if (installBtn) {
+                installBtn.style.display = 'block';
+                installBtn.addEventListener('click', async () => {
                     if (deferredPrompt) {
                         deferredPrompt.prompt();
                         const { outcome } = await deferredPrompt.userChoice;
@@ -577,20 +687,13 @@
                         hideInstallButton();
                     }
                 });
-                
-                document.body.appendChild(installButton);
             }
         }
         
         function hideInstallButton() {
-            if (installButton) {
-                installButton.style.animation = 'slideOutDown 0.3s ease';
-                setTimeout(() => {
-                    if (installButton && installButton.parentNode) {
-                        installButton.parentNode.removeChild(installButton);
-                        installButton = null;
-                    }
-                }, 300);
+            const installBtn = document.getElementById('pwa-install-btn');
+            if (installBtn) {
+                installBtn.style.display = 'none';
             }
         }
         
@@ -609,8 +712,8 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(135deg, #66BB6A, #8BC34A);
-                color: white;
+                background: linear-gradient(135deg, #2a1a4d, #3c2a6e);
+                color: gold;
                 padding: 1rem;
                 z-index: 10000;
                 text-align: center;
@@ -643,7 +746,6 @@
             const tab = urlParams.get('tab');
             
             if (action === 'add-card') {
-                // Wait for app to initialize, then open add card modal
                 setTimeout(() => {
                     if (window.app && window.app.openAddCardModal) {
                         window.app.openAddCardModal();
@@ -679,39 +781,6 @@
             @keyframes slideOutUp {
                 from { transform: translateY(0); opacity: 1; }
                 to { transform: translateY(-100%); opacity: 0; }
-            }
-            
-            .install-btn {
-                backdrop-filter: blur(10px);
-                border: 2px solid rgba(255, 255, 255, 0.2);
-            }
-            
-            .update-banner .update-content {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 1rem;
-                flex-wrap: wrap;
-            }
-            
-            .update-banner .btn {
-                margin: 0;
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
-            
-            @media (max-width: 768px) {
-                .install-btn {
-                    bottom: 10px;
-                    right: 10px;
-                    font-size: 0.9rem;
-                    padding: 0.75rem 1.5rem;
-                }
-                
-                .update-banner .update-content {
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
             }
         `;
         document.head.appendChild(pwaStyles);

@@ -65,6 +65,10 @@ class MTGCollectionTracker {
                 this.cardScanner = new MTGCardScanner(this);
                 window.cardScanner = this.cardScanner;
             }
+            if (window.DeckBuilder) {
+                this.deckBuilder = new DeckBuilder(this);
+                window.deckBuilder = this.deckBuilder;
+            }
         }, 100);
     }
 
@@ -691,7 +695,7 @@ class MTGCollectionTracker {
     }
 
     setupEventListeners() {
-        // Navigation
+        // Navigation - both old nav-btn and new sidebar navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (btn.id === 'auth-btn') {
@@ -704,11 +708,37 @@ class MTGCollectionTracker {
             });
         });
 
+        // Sidebar navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabName = e.currentTarget.dataset.tab;
+                if (tabName) {
+                    this.switchTab(tabName);
+                }
+            });
+        });
+
         // Add card modal
-        document.getElementById('add-card-btn').addEventListener('click', () => this.openAddCardModal());
-        document.getElementById('close-modal').addEventListener('click', () => this.closeAddCardModal());
-        document.getElementById('cancel-add').addEventListener('click', () => this.closeAddCardModal());
-        document.getElementById('add-card-form').addEventListener('submit', (e) => this.addCard(e));
+        const addCardBtn = document.getElementById('add-card-btn');
+        if (addCardBtn) {
+            addCardBtn.addEventListener('click', () => this.openAddCardModal());
+        }
+        
+        const closeModal = document.getElementById('close-modal');
+        if (closeModal) {
+            closeModal.addEventListener('click', () => this.closeAddCardModal());
+        }
+        
+        const cancelAdd = document.getElementById('cancel-add');
+        if (cancelAdd) {
+            cancelAdd.addEventListener('click', () => this.closeAddCardModal());
+        }
+        
+        const addCardForm = document.getElementById('add-card-form');
+        if (addCardForm) {
+            addCardForm.addEventListener('submit', (e) => this.addCard(e));
+        }
 
         // Card scanner
         const scanBtn = document.getElementById('scan-card-btn');
@@ -752,13 +782,31 @@ class MTGCollectionTracker {
     }
 
     switchTab(tabName) {
-        // Update navigation
+        // Update old navigation if present
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        const oldNavBtn = document.querySelector(`.nav-btn[data-tab="${tabName}"]`);
+        if (oldNavBtn) {
+            oldNavBtn.classList.add('active');
+        }
+
+        // Update sidebar navigation
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        const sidebarNavItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+        if (sidebarNavItem) {
+            sidebarNavItem.classList.add('active');
+        }
 
         // Update content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
+        const tabContent = document.getElementById(tabName);
+        if (tabContent) {
+            tabContent.classList.add('active');
+        }
+
+        // Close mobile sidebar if open
+        if (this.mobileUI && window.innerWidth <= 768) {
+            this.mobileUI.closeMobileSidebar();
+        }
     }
 
     // Enhanced Card Preview with Price Sources

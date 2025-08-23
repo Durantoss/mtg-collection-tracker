@@ -61,6 +61,12 @@ class MobileUIEnhanced {
     }
 
     createMobileHeader() {
+        // Check if mobile header already exists (from new HTML structure)
+        const existingHeader = document.querySelector('.mobile-header');
+        if (existingHeader) {
+            return; // Use the existing header from the new HTML structure
+        }
+
         const header = document.createElement('div');
         header.className = 'mobile-header';
         header.innerHTML = `
@@ -144,7 +150,34 @@ class MobileUIEnhanced {
     }
 
     setupEventListeners() {
-        // Bottom navigation
+        // Mobile menu toggle for sidebar
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => {
+                this.toggleMobileSidebar();
+            });
+        }
+
+        // Sidebar overlay to close menu
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                this.closeMobileSidebar();
+            });
+        }
+
+        // Sidebar navigation items
+        document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabName = e.currentTarget.dataset.tab;
+                if (tabName) {
+                    this.handleSidebarNavigation(tabName);
+                }
+            });
+        });
+
+        // Bottom navigation (if still present)
         document.querySelectorAll('.mobile-nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 this.handleTabSwitch(e.currentTarget.dataset.tab);
@@ -186,6 +219,20 @@ class MobileUIEnhanced {
         document.addEventListener('touchend', (e) => {
             this.handleTouchEnd(e);
         }, { passive: true });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                sidebar && 
+                sidebar.classList.contains('mobile-open') &&
+                !sidebar.contains(e.target) && 
+                !mobileMenuToggle.contains(e.target)) {
+                this.closeMobileSidebar();
+            }
+        });
     }
 
     setupSwipeGestures() {
@@ -538,21 +585,100 @@ class MobileUIEnhanced {
     }
 
     handleHeaderMenu() {
-        // Show user menu or auth options
-        if (this.app.isAuthenticated) {
-            const userMenu = document.getElementById('user-menu');
-            if (userMenu) {
-                // On mobile, show user menu briefly then hide it
-                userMenu.style.display = 'block';
-                setTimeout(() => {
-                    userMenu.style.display = 'none';
-                }, 1500); // Hide after 1.5 seconds on mobile
-            }
+        // Toggle mobile sidebar instead of showing user menu
+        if (this.isMobile) {
+            this.toggleMobileSidebar();
         } else {
-            if (this.app.openLoginModal) {
-                this.app.openLoginModal();
+            // Show user menu or auth options on desktop
+            if (this.app.isAuthenticated) {
+                const userMenu = document.getElementById('user-menu');
+                if (userMenu) {
+                    userMenu.style.display = 'block';
+                    setTimeout(() => {
+                        userMenu.style.display = 'none';
+                    }, 1500);
+                }
+            } else {
+                if (this.app.openLoginModal) {
+                    this.app.openLoginModal();
+                }
             }
         }
+    }
+
+    // New methods for sidebar functionality
+    toggleMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (!sidebar) return;
+
+        const isOpen = sidebar.classList.contains('mobile-open');
+        
+        if (isOpen) {
+            this.closeMobileSidebar();
+        } else {
+            this.openMobileSidebar();
+        }
+        
+        this.triggerHapticFeedback();
+    }
+
+    openMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (sidebar) {
+            sidebar.classList.add('mobile-open');
+            document.body.classList.add('sidebar-open');
+        }
+        
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+    }
+
+    closeMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        if (sidebar) {
+            sidebar.classList.remove('mobile-open');
+            document.body.classList.remove('sidebar-open');
+        }
+        
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+
+    handleSidebarNavigation(tabName) {
+        // Close mobile sidebar after navigation
+        if (this.isMobile) {
+            this.closeMobileSidebar();
+        }
+
+        // Update active sidebar item
+        document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const activeItem = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+
+        // Update current tab
+        this.currentTab = tabName;
+        this.updateHeaderTitle(tabName);
+        this.updateFabAction(tabName);
+        
+        // Switch to the actual tab
+        if (this.app.switchTab) {
+            this.app.switchTab(tabName);
+        }
+
+        this.triggerHapticFeedback();
     }
 
     showMoreMenu() {
