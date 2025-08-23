@@ -486,7 +486,11 @@ class MobileUIEnhanced {
         if (this.app.isAuthenticated) {
             const userMenu = document.getElementById('user-menu');
             if (userMenu) {
-                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+                // On mobile, show user menu briefly then hide it
+                userMenu.style.display = 'block';
+                setTimeout(() => {
+                    userMenu.style.display = 'none';
+                }, 1500); // Hide after 1.5 seconds on mobile
             }
         } else {
             if (this.app.openLoginModal) {

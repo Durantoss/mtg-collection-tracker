@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="mobile-ui-enhanced.css">
     <link rel="stylesheet" href="mobile-phone-optimized.css">
     <link rel="stylesheet" href="import-progress-styles.css">
+    <link rel="stylesheet" href="card-scanner.css">
     <!-- Mobile UI enhancements deployed: 2025-08-22 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -78,9 +79,14 @@
             <div class="tab-content active" id="collection">
                 <div class="tab-header">
                     <h2>My Collection</h2>
-                    <button class="btn btn-primary" id="add-card-btn">
-                        <i class="fas fa-plus"></i> Add Card
-                    </button>
+                    <div class="header-actions">
+                        <button class="btn btn-scanner" id="scan-card-btn">
+                            <i class="fas fa-camera"></i> Scan Card
+                        </button>
+                        <button class="btn btn-primary" id="add-card-btn">
+                            <i class="fas fa-plus"></i> Add Card
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="collection-stats">
@@ -491,6 +497,7 @@
     <script src="wishlist-and-stats.js"></script>
     <script src="mobile-ui-enhanced.js"></script>
     <script src="mana-symbols.js"></script>
+    <script src="card-scanner.js"></script>
     <script src="script.js"></script>
     <script src="price-tracker.js"></script>
     

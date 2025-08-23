@@ -61,6 +61,10 @@ class MTGCollectionTracker {
                 this.wishlistAndStats = new WishlistAndStats(this);
                 window.wishlistAndStats = this.wishlistAndStats;
             }
+            if (window.MTGCardScanner) {
+                this.cardScanner = new MTGCardScanner(this);
+                window.cardScanner = this.cardScanner;
+            }
         }, 100);
     }
 
@@ -160,7 +164,7 @@ class MTGCollectionTracker {
         // Remove any existing login prompts that might be blocking the UI
         this.removeLoginPrompts();
         
-        // Show user menu
+        // Show user menu - but hide it on mobile after a brief display
         const userMenu = document.getElementById('user-menu');
         if (userMenu) {
             userMenu.style.display = 'block';
@@ -171,6 +175,13 @@ class MTGCollectionTracker {
             
             if (usernameEl) usernameEl.textContent = this.userProfile?.username || 'User';
             if (roleEl) roleEl.textContent = this.userProfile?.is_admin ? 'Admin' : 'User';
+            
+            // Hide user menu on mobile after sign-in
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    userMenu.style.display = 'none';
+                }, 2000); // Hide after 2 seconds on mobile
+            }
         }
         
         // Show/hide admin navigation button based on user role
@@ -698,6 +709,18 @@ class MTGCollectionTracker {
         document.getElementById('close-modal').addEventListener('click', () => this.closeAddCardModal());
         document.getElementById('cancel-add').addEventListener('click', () => this.closeAddCardModal());
         document.getElementById('add-card-form').addEventListener('submit', (e) => this.addCard(e));
+
+        // Card scanner
+        const scanBtn = document.getElementById('scan-card-btn');
+        if (scanBtn) {
+            scanBtn.addEventListener('click', () => {
+                if (this.cardScanner) {
+                    this.cardScanner.openScanner();
+                } else {
+                    this.showNotification('Card scanner not available', 'error');
+                }
+            });
+        }
 
         // Search functionality
         document.getElementById('search-btn').addEventListener('click', () => this.searchCards());
