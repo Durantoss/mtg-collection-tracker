@@ -297,16 +297,22 @@ class MTGCardScanner {
     }
 
     async detectCard() {
-        if (!this.video || !this.canvas || Date.now() - this.lastDetectionTime < this.detectionCooldown) {
+        if (!this.video || Date.now() - this.lastDetectionTime < this.detectionCooldown) {
             return;
         }
 
         try {
+            // Create dynamic canvas for frame analysis
+            const canvas = document.createElement('canvas');
+            canvas.width = this.video.videoWidth;
+            canvas.height = this.video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
             // Capture current frame
-            this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+            ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height);
             
             // Simple card detection based on rectangular shapes and contrast
-            const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const cardDetected = this.analyzeImageForCard(imageData);
             
             if (cardDetected) {
@@ -387,15 +393,21 @@ class MTGCardScanner {
     }
 
     async captureCard() {
-        if (!this.video || !this.canvas) return;
+        if (!this.video) return;
         
         try {
             // Show loading
             this.showLoading(true);
             
+            // Create dynamic canvas for capture
+            const canvas = document.createElement('canvas');
+            canvas.width = this.video.videoWidth;
+            canvas.height = this.video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
             // Capture the current frame
-            this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-            const imageDataUrl = this.canvas.toDataURL('image/jpeg', 0.8);
+            ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height);
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
             
             // Stop detection during processing
             this.isScanning = false;
@@ -519,15 +531,15 @@ class MTGCardScanner {
                 img.src = imageDataUrl;
             });
 
-            // Create canvas and crop to focus on card name area (top 20%)
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = img.width;
-            tempCanvas.height = img.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(img, 0, 0);
+            // Create dynamic canvas for OCR processing
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
 
-            // Crop to focus on card name area
-            const croppedCanvas = this.cropCanvas(tempCanvas, 0.2);
+            // Crop to focus on card name area (top 20%)
+            const croppedCanvas = this.cropCanvas(canvas, 0.2);
             
             // Check if Tesseract is available
             if (typeof Tesseract !== 'undefined') {
