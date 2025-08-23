@@ -21,7 +21,14 @@ class DeckQRIntegration {
 
     // Load QR code libraries
     loadQRLibraries() {
-        // Load QRCode.js for generation
+        // Load QR Code Styling library for enhanced QR codes
+        if (!window.QRCodeStyling) {
+            const qrStylingScript = document.createElement('script');
+            qrStylingScript.src = 'https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js';
+            document.head.appendChild(qrStylingScript);
+        }
+
+        // Load QRCode.js for fallback generation
         if (!window.QRCode) {
             const qrScript = document.createElement('script');
             qrScript.src = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js';
@@ -158,6 +165,11 @@ class DeckQRIntegration {
         // Generate QR code
         setTimeout(() => {
             this.renderQRCode(deckData);
+            
+            // Log deck sharing action
+            if (window.deckHistoryManager) {
+                window.deckHistoryManager.logDeckAction(deckData, 'shared');
+            }
         }, 100);
 
         // Close modal when clicking outside
@@ -168,31 +180,127 @@ class DeckQRIntegration {
         });
     }
 
+    // Generate styled QR code based on deck archetype
+    generateStyledQR(deckData, archetype) {
+        const themeMap = {
+            aggro: { color: '#ff4500', shape: 'square' },
+            control: { color: '#00bfff', shape: 'circle' },
+            midrange: { color: '#228b22', shape: 'rounded' },
+            combo: { color: '#9932cc', shape: 'dots' },
+            graveyard: { color: '#4b0082', shape: 'classy' },
+            enchantress: { color: '#dda0dd', shape: 'classy-rounded' },
+            other: { color: '#e50914', shape: 'square' }
+        };
+
+        const theme = themeMap[archetype] || themeMap['other'];
+        const deckDataString = JSON.stringify(deckData);
+
+        if (window.QRCodeStyling) {
+            return new QRCodeStyling({
+                width: 300,
+                height: 300,
+                data: deckDataString,
+                dotsOptions: {
+                    color: theme.color,
+                    type: theme.shape
+                },
+                cornersSquareOptions: {
+                    type: 'extra-rounded',
+                    color: theme.color
+                },
+                cornersDotOptions: {
+                    type: 'dot',
+                    color: theme.color
+                },
+                backgroundOptions: {
+                    color: '#fdf6e3'
+                },
+                imageOptions: {
+                    crossOrigin: 'anonymous',
+                    margin: 10
+                }
+            });
+        }
+        return null;
+    }
+
+    // Detect deck archetype based on cards
+    detectDeckArchetype(deckData) {
+        if (!deckData.cards || deckData.cards.length === 0) return 'other';
+
+        const stats = deckData.stats;
+        const avgCmc = stats?.avgCmc || 0;
+        const creatureRatio = stats ? stats.creatures / stats.totalCards : 0;
+        const spellRatio = stats ? stats.spells / stats.totalCards : 0;
+
+        // Simple archetype detection logic
+        if (avgCmc <= 2.5 && creatureRatio > 0.6) return 'aggro';
+        if (avgCmc >= 4.0 && spellRatio > 0.5) return 'control';
+        if (creatureRatio > 0.4 && spellRatio > 0.3) return 'midrange';
+        
+        // Check for specific card types that indicate archetypes
+        const cardNames = deckData.cards.map(card => card.name.toLowerCase());
+        if (cardNames.some(name => name.includes('graveyard') || name.includes('mill'))) return 'graveyard';
+        if (cardNames.some(name => name.includes('enchantment'))) return 'enchantress';
+        if (cardNames.some(name => name.includes('combo') || name.includes('infinite'))) return 'combo';
+
+        return 'other';
+    }
+
     // Render QR code to canvas
     renderQRCode(deckData) {
         const canvas = document.getElementById('qr-canvas');
-        if (!canvas || !window.QRCode) return;
+        if (!canvas) return;
 
+        const archetype = this.detectDeckArchetype(deckData);
         const deckDataString = JSON.stringify(deckData);
-        
-        QRCode.toCanvas(canvas, deckDataString, {
-            width: 256,
-            margin: 2,
-            color: {
-                dark: '#e50914',
-                light: '#ffffff'
-            },
-            errorCorrectionLevel: 'M'
-        }, (error) => {
-            if (error) {
-                console.error('QR Code generation error:', error);
-                if (this.app.showNotification) {
-                    this.app.showNotification('Failed to generate QR code', 'error');
+
+        // Try to use styled QR first
+        const styledQR = this.generateStyledQR(deckData, archetype);
+        if (styledQR) {
+            // Clear canvas and append styled QR
+            canvas.style.display = 'none';
+            const qrContainer = canvas.parentElement;
+            const styledContainer = document.createElement('div');
+            styledContainer.id = 'styled-qr-container';
+            styledContainer.style.cssText = `
+                border: 3px solid var(--red-primary);
+                border-radius: 12px;
+                box-shadow: 0 0 12px var(--red-primary);
+                margin-bottom: 20px;
+                display: inline-block;
+                background: #fdf6e3;
+                padding: 10px;
+            `;
+            
+            qrContainer.insertBefore(styledContainer, canvas);
+            styledQR.append(styledContainer);
+            
+            console.log(`Styled QR Code generated for ${archetype} archetype!`);
+            return;
+        }
+
+        // Fallback to regular QR code
+        if (window.QRCode) {
+            QRCode.toCanvas(canvas, deckDataString, {
+                width: 256,
+                margin: 2,
+                color: {
+                    dark: '#e50914',
+                    light: '#ffffff'
+                },
+                errorCorrectionLevel: 'M'
+            }, (error) => {
+                if (error) {
+                    console.error('QR Code generation error:', error);
+                    if (this.app.showNotification) {
+                        this.app.showNotification('Failed to generate QR code', 'error');
+                    }
+                } else {
+                    console.log('QR Code generated successfully!');
                 }
-            } else {
-                console.log('QR Code generated successfully!');
-            }
-        });
+            });
+        }
     }
 
     // Show QR scanning modal
@@ -439,6 +547,11 @@ class DeckQRIntegration {
             this.deckBuilder.renderDeckList();
             this.deckBuilder.updateDeckStats();
             this.deckBuilder.updateManaCurve();
+
+            // Log deck import action
+            if (window.deckHistoryManager) {
+                window.deckHistoryManager.logDeckAction(deckData, 'imported');
+            }
 
             if (this.app.showNotification) {
                 this.app.showNotification(`Deck "${deckData.deckName}" imported successfully!`, 'success');

@@ -12,7 +12,8 @@ const SUPABASE_CONFIG = {
     tables: {
         profiles: 'profiles',
         collections: 'collections',
-        inviteCodes: 'invite_codes'
+        inviteCodes: 'invite_codes',
+        deckHistory: 'deck_history'
     },
     
     // Admin user details
@@ -251,6 +252,151 @@ const Database = {
     }
 };
 
+// Deck History functions
+const DeckHistory = {
+    // Log deck action
+    async logDeckAction({
+        userId,
+        deckId,
+        deckName,
+        archetype,
+        action,
+        synergyScore,
+        raritySpread,
+        sourceUserId
+    }) {
+        if (!supabase) throw new Error('Supabase not initialized');
+
+        const { data, error } = await supabase
+            .from(SUPABASE_CONFIG.tables.deckHistory)
+            .insert([{
+                user_id: userId,
+                deck_id: deckId,
+                deck_name: deckName,
+                archetype: archetype,
+                action: action,
+                synergy_score: synergyScore,
+                rarity_common: raritySpread?.common,
+                rarity_rare: raritySpread?.rare,
+                rarity_mythic: raritySpread?.mythic,
+                source_user_id: sourceUserId,
+                timestamp: new Date().toISOString()
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Deck history log failed:', error);
+            throw error;
+        }
+        return data;
+    },
+
+    // Get user's deck history
+    async getUserDeckHistory(userId) {
+        if (!supabase) return [];
+
+        const { data, error } = await supabase
+            .from(SUPABASE_CONFIG.tables.deckHistory)
+            .select('*')
+            .eq('user_id', userId)
+            .order('timestamp', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching deck history:', error);
+            return [];
+        }
+        return data || [];
+    },
+
+    // Get deck history by deck ID
+    async getDeckHistory(deckId) {
+        if (!supabase) return [];
+
+        const { data, error } = await supabase
+            .from(SUPABASE_CONFIG.tables.deckHistory)
+            .select('*')
+            .eq('deck_id', deckId)
+            .order('timestamp', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching deck history:', error);
+            return [];
+        }
+        return data || [];
+    },
+
+    // Get recent deck activity (for admin or global feed)
+    async getRecentDeckActivity(limit = 50) {
+        if (!supabase) return [];
+
+        const { data, error } = await supabase
+            .from(SUPABASE_CONFIG.tables.deckHistory)
+            .select(`
+                *,
+                profiles:user_id (username)
+            `)
+            .order('timestamp', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('Error fetching recent deck activity:', error);
+            return [];
+        }
+        return data || [];
+    },
+
+    // Get deck statistics
+    async getDeckStats(userId) {
+        if (!supabase) return null;
+
+        const { data, error } = await supabase
+            .from(SUPABASE_CONFIG.tables.deckHistory)
+            .select('action, archetype, synergy_score')
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Error fetching deck stats:', error);
+            return null;
+        }
+
+        // Calculate statistics
+        const stats = {
+            totalDecks: data.filter(entry => entry.action === 'created').length,
+            sharedDecks: data.filter(entry => entry.action === 'shared').length,
+            receivedDecks: data.filter(entry => entry.action === 'received').length,
+            importedDecks: data.filter(entry => entry.action === 'imported').length,
+            averageSynergy: 0,
+            favoriteArchetype: 'Unknown',
+            archetypeBreakdown: {}
+        };
+
+        // Calculate average synergy
+        const synergyScores = data.filter(entry => entry.synergy_score).map(entry => entry.synergy_score);
+        if (synergyScores.length > 0) {
+            stats.averageSynergy = Math.round(synergyScores.reduce((sum, score) => sum + score, 0) / synergyScores.length);
+        }
+
+        // Calculate archetype breakdown
+        data.forEach(entry => {
+            if (entry.archetype) {
+                stats.archetypeBreakdown[entry.archetype] = (stats.archetypeBreakdown[entry.archetype] || 0) + 1;
+            }
+        });
+
+        // Find favorite archetype
+        let maxCount = 0;
+        Object.entries(stats.archetypeBreakdown).forEach(([archetype, count]) => {
+            if (count > maxCount) {
+                maxCount = count;
+                stats.favoriteArchetype = archetype;
+            }
+        });
+
+        return stats;
+    }
+};
+
 // Admin functions
 const Admin = {
     // Generate invite code
@@ -327,5 +473,5 @@ const Admin = {
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SUPABASE_CONFIG, Auth, Database, Admin, initializeSupabase };
+    module.exports = { SUPABASE_CONFIG, Auth, Database, DeckHistory, Admin, initializeSupabase };
 }
