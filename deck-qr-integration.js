@@ -431,7 +431,12 @@ class DeckQRIntegration {
                 throw new Error('Invalid deck data format');
             }
 
-            this.showImportDeckModal(deckData);
+            // Check if AR is supported and offer AR preview
+            if (this.checkARSupport() && window.arPreview) {
+                this.showARPreviewOption(deckData);
+            } else {
+                this.showImportDeckModal(deckData);
+            }
             
         } catch (error) {
             console.error('QR decode error:', error);
@@ -439,6 +444,141 @@ class DeckQRIntegration {
                 this.app.showNotification('Invalid QR code format', 'error');
             }
         }
+    }
+
+    // Check AR support (same as in original user sketch)
+    checkARSupport() {
+        return 'xr' in navigator || window.ARCoreSupported || false;
+    }
+
+    // Show AR preview option for scanned deck
+    showARPreviewOption(deckData) {
+        // Close scan modal first
+        const scanModal = document.getElementById('qr-scan-modal');
+        if (scanModal) scanModal.remove();
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>🔮 Arcane Lens Available</h3>
+                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <div class="deck-preview" style="background: var(--bg-charcoal); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--red-primary);">
+                        <h4 style="color: var(--red-primary); margin-bottom: 15px;">🧙 ${deckData.deckName}</h4>
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 15px; font-size: 0.9rem;">
+                            <div style="text-align: center;">
+                                <div style="color: var(--red-primary); font-weight: 700;">${deckData.cards.length}</div>
+                                <div style="color: var(--text-muted);">Unique Cards</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: var(--red-primary); font-weight: 700;">${deckData.stats?.totalCards || deckData.cards.reduce((sum, card) => sum + card.qty, 0)}</div>
+                                <div style="color: var(--text-muted);">Total Cards</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: var(--red-primary); font-weight: 700;">${deckData.synergyScore || 0}%</div>
+                                <div style="color: var(--text-muted);">Synergy</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <p style="color: var(--text-light); margin-bottom: 15px;">Your device supports the Arcane Lens! Experience this deck in mystical AR.</p>
+                        <div style="background: var(--bg-dark); padding: 15px; border-radius: 8px; border-left: 3px solid var(--red-primary);">
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">
+                                <i class="fas fa-magic" style="color: var(--red-primary);"></i>
+                                View cards floating in 3D space with gesture controls
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="ar-options" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="deckQRIntegration.launchDeckAR(${JSON.stringify(deckData).replace(/"/g, '&quot;')}); this.closest('.modal').remove();">
+                            <i class="fas fa-magic"></i> Launch AR View
+                        </button>
+                        <button class="btn btn-secondary" onclick="deckQRIntegration.showImportDeckModal(${JSON.stringify(deckData).replace(/"/g, '&quot;')}); this.closest('.modal').remove();">
+                            <i class="fas fa-download"></i> Import Normally
+                        </button>
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove();">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        modal.classList.add('active');
+        modal.style.display = 'block';
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+
+    // Launch AR preview for scanned deck
+    async launchDeckAR(deckData) {
+        if (!window.arPreview) {
+            console.error('AR Preview system not available');
+            if (this.app.showNotification) {
+                this.app.showNotification('AR system not initialized', 'error');
+            }
+            return;
+        }
+
+        try {
+            // Convert deck data to format expected by AR system
+            const arCards = deckData.cards.map(card => ({
+                name: card.name,
+                type: card.type,
+                manaCost: card.manaCost,
+                power: card.power,
+                toughness: card.toughness,
+                quantity: card.qty,
+                set: card.set,
+                imageUrl: this.generateCardImageUrl(card)
+            }));
+
+            // Launch AR with deck data
+            await window.arPreview.launchARPreview('qr', {
+                deckName: deckData.deckName,
+                cards: arCards,
+                synergyScore: deckData.synergyScore,
+                source: 'qr-scan'
+            });
+
+            // Log AR deck view action
+            if (window.deckHistoryManager) {
+                window.deckHistoryManager.logDeckAction({
+                    ...deckData,
+                    viewType: 'ar-preview'
+                }, 'ar-viewed');
+            }
+
+            if (this.app.showNotification) {
+                this.app.showNotification(`Launching AR view for "${deckData.deckName}"`, 'success');
+            }
+
+        } catch (error) {
+            console.error('AR launch error:', error);
+            if (this.app.showNotification) {
+                this.app.showNotification('Failed to launch AR view', 'error');
+            }
+            // Fallback to normal import
+            this.showImportDeckModal(deckData);
+        }
+    }
+
+    // Generate card image URL for AR display
+    generateCardImageUrl(card) {
+        // Use Scryfall API for card images
+        const cardName = encodeURIComponent(card.name.toLowerCase());
+        const setCode = card.set ? `&set=${card.set.toLowerCase()}` : '';
+        return `https://api.scryfall.com/cards/named?exact=${cardName}${setCode}&format=image&version=normal`;
     }
 
     // Show import deck confirmation modal

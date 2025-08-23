@@ -64,10 +64,25 @@ class MTGCollectionTracker {
             if (window.MTGCardScanner) {
                 this.cardScanner = new MTGCardScanner(this);
                 window.cardScanner = this.cardScanner;
+                
+                // Integrate AR preview with card scanner
+                if (this.cardScanner && window.ARPreview) {
+                    this.cardScanner.onCardIdentified = (cardData) => {
+                        // Offer AR preview after successful card identification
+                        this.showARPreviewOption(cardData);
+                    };
+                }
             }
             if (window.DeckBuilder) {
                 this.deckBuilder = new DeckBuilder(this);
                 window.deckBuilder = this.deckBuilder;
+            }
+            
+            // Initialize AR Preview System
+            if (window.ARPreview) {
+                this.arPreview = new ARPreview(this);
+                window.arPreview = this.arPreview;
+                console.log('AR Preview system initialized');
             }
         }, 100);
     }
@@ -1560,6 +1575,59 @@ class MTGCollectionTracker {
         }
         
         return `mana-${identity}`;
+    }
+
+    // AR Integration Methods
+    showARPreviewOption(cardData) {
+        // Show AR preview option after successful card identification
+        if (!this.arPreview || !cardData) return;
+        
+        const arOption = document.createElement('div');
+        arOption.className = 'ar-preview-option';
+        arOption.innerHTML = `
+            <div class="ar-option-content">
+                <div class="ar-option-header">
+                    <i class="fas fa-cube"></i>
+                    <span>View in AR</span>
+                </div>
+                <p>Experience this card in augmented reality!</p>
+                <div class="ar-option-actions">
+                    <button class="btn btn-primary" onclick="this.closest('.ar-preview-option').remove(); window.arPreview.launchARPreview('card', { cardData: ${JSON.stringify(cardData).replace(/"/g, '&quot;')} })">
+                        🔮 Launch AR Preview
+                    </button>
+                    <button class="btn btn-secondary" onclick="this.closest('.ar-preview-option').remove()">
+                        Skip
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        arOption.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2a1a4d, #3c2a6e);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 2rem;
+            z-index: 10001;
+            max-width: 400px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            animation: arOptionSlideIn 0.5s ease;
+        `;
+        
+        document.body.appendChild(arOption);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (arOption.parentNode) {
+                arOption.style.animation = 'arOptionSlideOut 0.3s ease';
+                setTimeout(() => arOption.remove(), 300);
+            }
+        }, 10000);
     }
 
     // Utility Functions
