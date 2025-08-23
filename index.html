@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="import-progress-styles.css">
     <link rel="stylesheet" href="rules-dictionary-styles.css">
     <link rel="stylesheet" href="ar-preview.css">
+    <link rel="stylesheet" href="admin-deployment.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Supabase JavaScript Library -->
@@ -507,6 +508,7 @@
                 <div class="admin-tabs">
                     <button class="admin-tab-btn active" data-admin-tab="users">Users</button>
                     <button class="admin-tab-btn" data-admin-tab="invites">Invite Codes</button>
+                    <button class="admin-tab-btn" data-admin-tab="deployment">Deployment</button>
                     <button class="admin-tab-btn" data-admin-tab="stats">Statistics</button>
                 </div>
                 
@@ -529,6 +531,65 @@
                     </div>
                     <div class="invites-list" id="invites-list">
                         <!-- Invite codes will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="admin-tab-content" id="admin-deployment">
+                    <div class="admin-section-header">
+                        <h4>Vercel Deployment</h4>
+                        <div class="deployment-status" id="deployment-status">
+                            <span class="status-indicator" id="status-indicator">●</span>
+                            <span id="deployment-status-text">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="deployment-controls">
+                        <div class="deployment-info">
+                            <div class="info-row">
+                                <span class="info-label">Repository:</span>
+                                <span class="info-value">Durantoss/mtg-collection-tracker</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Branch:</span>
+                                <span class="info-value">main</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Last Deployment:</span>
+                                <span class="info-value" id="last-deployment">Never</span>
+                            </div>
+                        </div>
+                        
+                        <div class="deployment-actions">
+                            <button class="btn btn-primary" id="deploy-production-btn">
+                                <i class="fas fa-rocket"></i> Deploy to Production
+                            </button>
+                            <button class="btn btn-secondary" id="deploy-preview-btn">
+                                <i class="fas fa-eye"></i> Deploy Preview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="deployment-log" id="deployment-log" style="display: none;">
+                        <div class="log-header">
+                            <h5>Deployment Log</h5>
+                            <button class="btn btn-small btn-secondary" id="clear-log-btn">Clear</button>
+                        </div>
+                        <div class="log-content" id="log-content">
+                            <!-- Deployment logs will appear here -->
+                        </div>
+                    </div>
+                    
+                    <div class="deployment-history">
+                        <h5>Recent Deployments</h5>
+                        <div class="deployments-list" id="deployments-list">
+                            <div class="deployment-item">
+                                <div class="deployment-info">
+                                    <span class="deployment-id">No deployments yet</span>
+                                    <span class="deployment-time">-</span>
+                                </div>
+                                <div class="deployment-status-badge">-</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -596,6 +657,7 @@
     <script src="deckforge.js"></script>
     <script src="ar-gestures.js"></script>
     <script src="ar-preview.js"></script>
+    <script src="admin-deployment.js"></script>
     <script src="script.js"></script>
     
     <!-- PWA Service Worker Registration -->
