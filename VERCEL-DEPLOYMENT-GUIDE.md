@@ -4,9 +4,10 @@
 
 ### Fixed Issues:
 - ✅ **Manifest Icon Path**: Fixed `/icons/icon-192.png` → `/icons/icon-192x192.png`
-- ✅ **Vercel Configuration**: Simplified routing to prevent conflicts
+- ✅ **Vercel Configuration**: Converted from legacy `routes` to modern `rewrites` + `headers` format
 - ✅ **Service Worker**: Updated to cache all enhanced files
 - ✅ **PWA Compliance**: All PWA requirements met
+- ✅ **Vercel Compatibility**: Resolved "routes cannot be present" error
 
 ## 🎯 Step-by-Step Deployment
 
