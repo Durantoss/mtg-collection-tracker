@@ -1358,7 +1358,7 @@ class MTGCollectionTracker {
         }
 
         resultsContainer.innerHTML = cards.slice(0, 20).map(card => `
-            <div class="search-card" onclick="window.app.addCardFromSearch('${card.id}')">
+            <div class="search-card">
                 ${card.image_uris ? `
                     <div class="search-card-image">
                         <img src="${card.image_uris.small}" alt="${card.name}" loading="lazy">
@@ -1370,7 +1370,12 @@ class MTGCollectionTracker {
                         <div class="search-detail">${card.set_name} (${card.set.toUpperCase()})</div>
                         <div class="search-detail">${card.type_line}</div>
                         <div class="search-price">$${card.prices?.usd || 'N/A'}</div>
-                        ${showVariations ? `<div class="variation-indicator">Variation Available</div>` : ''}
+                        ${showVariations ? `<div class="variation-indicator">✨ Multiple Versions</div>` : ''}
+                    </div>
+                    <div class="search-card-actions">
+                        <button class="btn btn-primary btn-small add-from-search-btn" onclick="window.app.addCardFromSearch('${card.id}')">
+                            <i class="fas fa-plus"></i> Add to Collection
+                        </button>
                     </div>
                 </div>
             </div>
