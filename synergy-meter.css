@@ -1,0 +1,621 @@
+/* Synergy Meter Styles for MTG Deck Builder */
+/* Provides visual feedback with animations, particles, and fantasy effects */
+
+/* Main Synergy Meter Container */
+.synergy-meter-container {
+    background: linear-gradient(135deg, rgba(42, 26, 77, 0.4), rgba(26, 15, 47, 0.4));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+.synergy-meter-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+    border-color: var(--red-primary);
+}
+
+/* Synergy Header */
+.synergy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.synergy-title {
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.synergy-title i {
+    color: var(--red-primary);
+    font-size: 1.1rem;
+}
+
+.synergy-score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.synergy-score {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--red-primary);
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+}
+
+.synergy-max {
+    font-size: 1.2rem;
+    color: rgba(240, 230, 210, 0.6);
+    font-weight: 600;
+}
+
+/* Synergy Meter Wrapper */
+.synergy-meter-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.synergy-meter {
+    flex: 1;
+    height: 40px;
+    background: rgba(26, 15, 47, 0.6);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.synergy-meter:hover {
+    border-color: var(--red-primary);
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+}
+
+.synergy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-primary), #f39c12);
+    border-radius: 18px;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.synergy-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+.synergy-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.synergy-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+.synergy-breakdown-btn {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--red-primary), #c0392b);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.synergy-breakdown-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+}
+
+/* Glow Effects */
+.synergy-meter.glow-arcane {
+    box-shadow: 0 0 30px rgba(155, 89, 182, 0.6);
+    border-color: #9b59b6;
+}
+
+.synergy-meter.glow-powerful {
+    box-shadow: 0 0 30px rgba(231, 76, 60, 0.6);
+    border-color: #e74c3c;
+}
+
+.synergy-meter.glow-legendary {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+    border-color: #ffd700;
+    animation: legendaryPulse 2s infinite;
+}
+
+/* Synergy Breakdown */
+.synergy-breakdown {
+    background: rgba(26, 15, 47, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+.breakdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.breakdown-header h5 {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-breakdown {
+    background: none;
+    border: none;
+    color: rgba(240, 230, 210, 0.6);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-breakdown:hover {
+    color: var(--red-primary);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.breakdown-categories {
+    display: grid;
+    gap: 1rem;
+}
+
+.breakdown-category {
+    background: rgba(42, 26, 77, 0.3);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.category-name {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.category-weight {
+    color: rgba(240, 230, 210, 0.6);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.category-bar {
+    height: 20px;
+    background: rgba(26, 15, 47, 0.6);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.category-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-primary), #f39c12);
+    border-radius: 9px;
+    transition: all 0.6s ease;
+    position: relative;
+}
+
+.category-score {
+    text-align: right;
+    color: var(--red-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* AI Recommendations */
+.ai-recommendations {
+    background: rgba(26, 15, 47, 0.6);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.recommendations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(42, 26, 77, 0.4);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recommendations-header:hover {
+    background: rgba(42, 26, 77, 0.6);
+}
+
+.recommendations-header h5 {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recommendations-header i {
+    color: #f39c12;
+}
+
+.recommendations-toggle {
+    color: rgba(240, 230, 210, 0.6);
+    transition: all 0.2s ease;
+}
+
+.recommendations-toggle:hover {
+    color: var(--red-primary);
+}
+
+.recommendations-content {
+    display: none;
+    padding: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+.recommendations-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.suggestion-card {
+    background: rgba(42, 26, 77, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.4s ease;
+}
+
+.suggestion-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+    border-color: var(--red-primary);
+}
+
+.suggestion-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.suggestion-text {
+    flex: 1;
+    color: rgba(240, 230, 210, 0.9);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.suggestion-priority {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.suggestion-priority.high {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.suggestion-priority.medium {
+    background: rgba(243, 156, 18, 0.2);
+    color: #f39c12;
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.suggestion-priority.low {
+    background: rgba(149, 165, 166, 0.2);
+    color: #95a5a6;
+    border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+.no-recommendations {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: rgba(240, 230, 210, 0.6);
+    font-style: italic;
+}
+
+.no-recommendations i {
+    font-size: 2rem;
+    color: #27ae60;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Particle Effects */
+.synergy-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Tooltip */
+.synergy-tooltip {
+    position: fixed;
+    z-index: 1000;
+    background: linear-gradient(135deg, #2a1a4d, #1a0f2f);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e74c3c;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+}
+
+.tooltip-content h6 {
+    margin: 0 0 0.5rem 0;
+    color: var(--red-primary);
+    font-size: 1rem;
+}
+
+.tooltip-content p {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-light);
+}
+
+.tooltip-content small {
+    color: rgba(240, 230, 210, 0.7);
+    font-size: 0.8rem;
+}
+
+/* Animations */
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes legendaryPulse {
+    0%, 100% { 
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 50px rgba(255, 215, 0, 1);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes particleFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.5);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .synergy-meter-container {
+        padding: 1rem;
+    }
+    
+    .synergy-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .synergy-score-display {
+        align-self: flex-end;
+    }
+    
+    .synergy-meter-wrapper {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .synergy-breakdown-btn {
+        align-self: center;
+    }
+    
+    .suggestion-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .suggestion-priority {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .synergy-score {
+        font-size: 1.5rem;
+    }
+    
+    .synergy-max {
+        font-size: 1rem;
+    }
+    
+    .synergy-meter {
+        height: 35px;
+    }
+    
+    .synergy-label {
+        font-size: 0.8rem;
+    }
+    
+    .breakdown-categories {
+        gap: 0.75rem;
+    }
+    
+    .category-bar {
+        height: 16px;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .synergy-meter-container {
+        border-width: 2px;
+    }
+    
+    .synergy-meter {
+        border-width: 3px;
+    }
+    
+    .suggestion-card {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .synergy-fill,
+    .category-fill,
+    .suggestion-card,
+    .synergy-meter-container {
+        transition: none;
+    }
+    
+    .synergy-fill::before {
+        animation: none;
+    }
+    
+    .synergy-meter.glow-legendary {
+        animation: none;
+    }
+    
+    .synergy-particle {
+        animation: none;
+    }
+    
+    .synergy-breakdown,
+    .recommendations-content,
+    .suggestion-card {
+        animation: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .synergy-meter-container {
+        background: white;
+        color: black;
+        border: 1px solid #ccc;
+    }
+    
+    .synergy-breakdown-btn,
+    .recommendations-toggle {
+        display: none;
+    }
+    
+    .synergy-breakdown,
+    .recommendations-content {
+        display: block !important;
+    }
+}

@@ -763,16 +763,300 @@ class DeckForgeApp {
         }
     }
 
-    handleAuth() {
-        if (window.app) {
-            if (window.app.currentUser && window.app.currentUser.username) {
+    async handleAuth() {
+        try {
+            // Check if user is currently logged in
+            const isLoggedIn = await this.checkAuthStatus();
+            
+            if (isLoggedIn) {
                 // User is logged in, sign out
-                window.app.signOut();
+                await this.signOut();
             } else {
                 // User is not logged in, show login modal
-                document.getElementById('login-modal')?.style.setProperty('display', 'block');
+                this.showLoginModal();
+            }
+        } catch (error) {
+            console.error('Authentication error:', error);
+            this.showNotification('Authentication error occurred', 'error');
+        }
+    }
+
+    async checkAuthStatus() {
+        // Check if legacy app system is available
+        if (window.app && window.app.currentUser && window.app.currentUser.username) {
+            return true;
+        }
+        
+        // Check Supabase auth directly
+        if (window.supabase) {
+            try {
+                const { data: { user } } = await window.supabase.auth.getUser();
+                return !!user;
+            } catch (error) {
+                console.error('Supabase auth check failed:', error);
             }
         }
+        
+        return false;
+    }
+
+    async signOut() {
+        try {
+            // Try legacy system first
+            if (window.app && window.app.signOut) {
+                await window.app.signOut();
+                this.showNotification('Signed out successfully', 'success');
+                this.updateUserInfo();
+                return;
+            }
+            
+            // Fallback to direct Supabase signout
+            if (window.supabase) {
+                const { error } = await window.supabase.auth.signOut();
+                if (error) throw error;
+                
+                this.showNotification('Signed out successfully', 'success');
+                this.updateUserInfo();
+                
+                // Clear any cached user data
+                if (window.app) {
+                    window.app.currentUser = null;
+                }
+            } else {
+                throw new Error('No authentication system available');
+            }
+        } catch (error) {
+            console.error('Sign out error:', error);
+            this.showNotification('Error signing out', 'error');
+        }
+    }
+
+    showLoginModal() {
+        // Try to show the login modal
+        const loginModal = document.getElementById('login-modal');
+        if (loginModal) {
+            loginModal.style.display = 'block';
+            this.setupLoginModalEvents();
+        } else {
+            // Fallback: create a simple login modal
+            this.createLoginModal();
+        }
+    }
+
+    setupLoginModalEvents() {
+        const loginModal = document.getElementById('login-modal');
+        if (!loginModal) return;
+
+        // Setup close button
+        const closeBtn = loginModal.querySelector('.close-btn, .modal-close');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                loginModal.style.display = 'none';
+            };
+        }
+
+        // Setup form submission
+        const loginForm = loginModal.querySelector('#login-form');
+        if (loginForm) {
+            loginForm.onsubmit = async (e) => {
+                e.preventDefault();
+                await this.handleLogin(e);
+            };
+        }
+
+        const registerForm = loginModal.querySelector('#register-form');
+        if (registerForm) {
+            registerForm.onsubmit = async (e) => {
+                e.preventDefault();
+                await this.handleRegister(e);
+            };
+        }
+
+        // Click outside to close
+        loginModal.onclick = (e) => {
+            if (e.target === loginModal) {
+                loginModal.style.display = 'none';
+            }
+        };
+    }
+
+    async handleLogin(event) {
+        const formData = new FormData(event.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
+
+        if (!email || !password) {
+            this.showNotification('Please fill in all fields', 'error');
+            return;
+        }
+
+        try {
+            // Try legacy system first
+            if (window.app && window.app.handleLogin) {
+                await window.app.handleLogin(event);
+                return;
+            }
+
+            // Fallback to direct Supabase login
+            if (window.supabase) {
+                const { data, error } = await window.supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                this.showNotification('Logged in successfully!', 'success');
+                document.getElementById('login-modal').style.display = 'none';
+                this.updateUserInfo();
+            } else {
+                throw new Error('No authentication system available');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showNotification(error.message || 'Login failed', 'error');
+        }
+    }
+
+    async handleRegister(event) {
+        const formData = new FormData(event.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const username = formData.get('username');
+
+        if (!email || !password || !username) {
+            this.showNotification('Please fill in all fields', 'error');
+            return;
+        }
+
+        try {
+            // Try legacy system first
+            if (window.app && window.app.handleRegister) {
+                await window.app.handleRegister(event);
+                return;
+            }
+
+            // Fallback to direct Supabase registration
+            if (window.supabase) {
+                const { data, error } = await window.supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            username: username
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                this.showNotification('Registration successful! Please check your email.', 'success');
+                document.getElementById('login-modal').style.display = 'none';
+            } else {
+                throw new Error('No authentication system available');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            this.showNotification(error.message || 'Registration failed', 'error');
+        }
+    }
+
+    createLoginModal() {
+        // Create a basic login modal if none exists
+        const modal = document.createElement('div');
+        modal.id = 'login-modal';
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Sign In</h3>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Sign In</button>
+                        </div>
+                    </form>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <p>Don't have an account? <a href="#" onclick="this.closest('.modal').remove(); window.deckForge.showRegisterModal()">Register here</a></p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        this.setupLoginModalEvents();
+    }
+
+    showRegisterModal() {
+        // Create a basic register modal
+        const modal = document.createElement('div');
+        modal.id = 'register-modal';
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Register</h3>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input type="text" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <p>Already have an account? <a href="#" onclick="this.closest('.modal').remove(); window.deckForge.showLoginModal()">Sign in here</a></p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+        // Setup events for register modal
+        const closeBtn = modal.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => modal.remove();
+        }
+
+        const registerForm = modal.querySelector('#register-form');
+        if (registerForm) {
+            registerForm.onsubmit = async (e) => {
+                e.preventDefault();
+                await this.handleRegister(e);
+                modal.remove();
+            };
+        }
+
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        };
     }
 
     importCollection() {
@@ -845,6 +1129,7 @@ class DeckForgeApp {
 let deckForge;
 let swipeableUI;
 let deckBuilder;
+let enhancedDeckBuilder;
 let deckQRIntegration;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -853,15 +1138,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize SwipeableUI with the main app
     swipeableUI = new SwipeableUI(deckForge);
     
-    // Initialize Deck Builder
-    if (window.DeckBuilder) {
+    // Initialize Enhanced Deck Builder (prioritize over basic deck builder)
+    if (window.EnhancedDeckBuilder) {
+        enhancedDeckBuilder = new EnhancedDeckBuilder(deckForge);
+        window.enhancedDeckBuilder = enhancedDeckBuilder;
+        window.deckBuilder = enhancedDeckBuilder; // Backward compatibility
+    } else if (window.DeckBuilder) {
+        // Fallback to basic deck builder
         deckBuilder = new DeckBuilder(deckForge);
         window.deckBuilder = deckBuilder;
     }
     
     // Initialize QR Integration after deck builder is ready
-    if (window.DeckQRIntegration && deckBuilder) {
-        deckQRIntegration = new DeckQRIntegration(deckForge, deckBuilder);
+    const activeDeckBuilder = enhancedDeckBuilder || deckBuilder;
+    if (window.DeckQRIntegration && activeDeckBuilder) {
+        deckQRIntegration = new DeckQRIntegration(deckForge, activeDeckBuilder);
         window.deckQRIntegration = deckQRIntegration;
     }
     
@@ -871,6 +1162,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Connect the swipeable UI to the main app
     deckForge.swipeableUI = swipeableUI;
+    
+    // Add mobile touch support for enhanced deck builder
+    if (enhancedDeckBuilder) {
+        addMobileTouchSupport();
+    }
     
     // Add notification styles
     const notificationStyles = document.createElement('style');
@@ -899,7 +1195,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = DeckForgeApp;
 }
 
-// FAB (Floating Action Button) Functionality
+// FAB (Floating Action Button) Functionality - Enhanced Hybrid Version
 function toggleFabMenu() {
     const actions = document.querySelector('.fab-actions');
     const fabMain = document.querySelector('.fab-main');
@@ -908,21 +1204,69 @@ function toggleFabMenu() {
         const isHidden = actions.classList.contains('hidden');
         
         if (isHidden) {
-            // Show actions
+            // Show actions with enhanced animation
             actions.classList.remove('hidden');
             fabMain.classList.add('rotating');
             
-            // Animate action buttons in sequence
+            // Reset and trigger staggered animations
             const buttons = actions.querySelectorAll('button');
             buttons.forEach((button, index) => {
-                button.style.animationDelay = `${(index + 1) * 0.1}s`;
+                // Reset animation
+                button.style.animation = 'none';
+                button.offsetHeight; // Trigger reflow
+                
+                // Apply enhanced staggered animation
+                button.style.animation = `fabActionSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards`;
+                button.style.animationDelay = `${0.1 + (index * 0.05)}s`;
             });
+            
+            // Add subtle haptic feedback for mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         } else {
-            // Hide actions
-            actions.classList.add('hidden');
-            fabMain.classList.remove('rotating');
+            // Hide actions with smooth transition
+            const buttons = actions.querySelectorAll('button');
+            buttons.forEach((button, index) => {
+                button.style.animation = `fabActionSlideOut 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards`;
+                button.style.animationDelay = `${index * 0.03}s`;
+            });
+            
+            // Hide container after animation completes
+            setTimeout(() => {
+                actions.classList.add('hidden');
+                fabMain.classList.remove('rotating');
+            }, 200 + (buttons.length * 30));
         }
     }
+}
+
+// Add slide out animation keyframes dynamically
+function addFabAnimations() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fabActionSlideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(15px) translateX(15px) scale(0.8);
+            }
+        }
+        
+        .fab-main.pulsing {
+            animation: fabPulse 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes fabPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function initFAB(actions) {
@@ -1048,6 +1392,9 @@ function showARPreviewModal() {
 
 // Initialize FAB with default actions when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Add enhanced FAB animations
+    addFabAnimations();
+    
     // Wait a bit for other scripts to load
     setTimeout(() => {
         // Set up default FAB actions
@@ -1076,6 +1423,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Initialize FAB with default actions
         initFAB(defaultActions);
+        
+        // Add pulse effect to FAB main button on first load
+        const fabMain = document.querySelector('.fab-main');
+        if (fabMain) {
+            setTimeout(() => {
+                fabMain.classList.add('pulsing');
+                setTimeout(() => {
+                    fabMain.classList.remove('pulsing');
+                }, 600);
+            }, 1000);
+        }
         
         // Add keyboard shortcut for FAB
         document.addEventListener('keydown', (e) => {
@@ -1148,6 +1506,320 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
+// Mobile Touch Support for Enhanced Deck Builder
+function addMobileTouchSupport() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isDragging = false;
+    let draggedElement = null;
+    let touchOffset = { x: 0, y: 0 };
+
+    // Add touch event listeners to deck cards
+    function setupTouchHandlers() {
+        const deckCards = document.querySelectorAll('.enhanced-deck-card');
+        deckCards.forEach(card => {
+            // Remove existing touch listeners to prevent duplicates
+            card.removeEventListener('touchstart', handleTouchStart);
+            card.removeEventListener('touchmove', handleTouchMove);
+            card.removeEventListener('touchend', handleTouchEnd);
+            
+            // Add new touch listeners
+            card.addEventListener('touchstart', handleTouchStart, { passive: false });
+            card.addEventListener('touchmove', handleTouchMove, { passive: false });
+            card.addEventListener('touchend', handleTouchEnd, { passive: false });
+        });
+    }
+
+    function handleTouchStart(e) {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = Date.now();
+        isDragging = false;
+        
+        draggedElement = e.currentTarget;
+        const rect = draggedElement.getBoundingClientRect();
+        touchOffset.x = touch.clientX - rect.left;
+        touchOffset.y = touch.clientY - rect.top;
+        
+        // Add visual feedback
+        draggedElement.style.transition = 'none';
+        
+        // Prevent default to avoid scrolling
+        e.preventDefault();
+    }
+
+    function handleTouchMove(e) {
+        if (!draggedElement) return;
+        
+        const touch = e.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+        const timeDelta = Date.now() - touchStartTime;
+        
+        // Start dragging if moved enough distance and time
+        if (!isDragging && (deltaX > 10 || deltaY > 10) && timeDelta > 100) {
+            isDragging = true;
+            draggedElement.classList.add('dragging');
+            
+            // Create visual clone for dragging
+            const clone = draggedElement.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.pointerEvents = 'none';
+            clone.style.zIndex = '9999';
+            clone.style.opacity = '0.8';
+            clone.style.transform = 'rotate(5deg) scale(1.05)';
+            clone.id = 'drag-clone';
+            document.body.appendChild(clone);
+            
+            // Add haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+        
+        if (isDragging) {
+            const clone = document.getElementById('drag-clone');
+            if (clone) {
+                clone.style.left = (touch.clientX - touchOffset.x) + 'px';
+                clone.style.top = (touch.clientY - touchOffset.y) + 'px';
+            }
+            
+            // Find drop target
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropTarget = elementBelow?.closest('.enhanced-deck-card');
+            
+            // Remove previous drop indicators
+            document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+            
+            if (dropTarget && dropTarget !== draggedElement) {
+                // Add drop indicator
+                const indicator = document.createElement('div');
+                indicator.className = 'drop-indicator';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: var(--red-primary);
+                    border-radius: 2px;
+                    z-index: 1000;
+                    animation: pulse 1s infinite;
+                `;
+                
+                const rect = dropTarget.getBoundingClientRect();
+                const insertBefore = touch.clientY < rect.top + rect.height / 2;
+                
+                if (insertBefore) {
+                    dropTarget.style.position = 'relative';
+                    dropTarget.appendChild(indicator);
+                } else {
+                    indicator.style.top = 'auto';
+                    indicator.style.bottom = '0';
+                    dropTarget.style.position = 'relative';
+                    dropTarget.appendChild(indicator);
+                }
+            }
+        }
+        
+        e.preventDefault();
+    }
+
+    function handleTouchEnd(e) {
+        if (!draggedElement) return;
+        
+        const touch = e.changedTouches[0];
+        const timeDelta = Date.now() - touchStartTime;
+        
+        // Clean up visual elements
+        const clone = document.getElementById('drag-clone');
+        if (clone) {
+            clone.remove();
+        }
+        
+        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+        
+        if (isDragging) {
+            // Handle drop
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropTarget = elementBelow?.closest('.enhanced-deck-card');
+            
+            if (dropTarget && dropTarget !== draggedElement) {
+                // Perform reorder
+                const deckList = document.getElementById('deck-list');
+                const rect = dropTarget.getBoundingClientRect();
+                const insertBefore = touch.clientY < rect.top + rect.height / 2;
+                
+                if (insertBefore) {
+                    deckList.insertBefore(draggedElement, dropTarget);
+                } else {
+                    deckList.insertBefore(draggedElement, dropTarget.nextSibling);
+                }
+                
+                // Notify enhanced deck builder of reorder
+                if (window.enhancedDeckBuilder && window.enhancedDeckBuilder.reorderDeckCards) {
+                    window.enhancedDeckBuilder.reorderDeckCards();
+                }
+                
+                // Add success haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([50, 50, 50]);
+                }
+            }
+            
+            draggedElement.classList.remove('dragging');
+        } else if (timeDelta < 300) {
+            // Handle tap (short touch)
+            const target = e.target;
+            if (target.closest('.quantity-btn')) {
+                // Let quantity buttons handle their own clicks
+                target.click();
+            } else if (target.closest('.remove-from-deck-btn')) {
+                // Let remove buttons handle their own clicks
+                target.click();
+            } else {
+                // Show card details or other tap actions
+                const cardName = draggedElement.querySelector('.deck-card-name')?.textContent;
+                if (cardName && window.deckForge) {
+                    window.deckForge.showNotification(`Tapped ${cardName}`, 'info');
+                }
+            }
+        }
+        
+        // Reset drag state
+        draggedElement.style.transition = '';
+        draggedElement = null;
+        isDragging = false;
+        touchStartX = 0;
+        touchStartY = 0;
+        touchStartTime = 0;
+        
+        e.preventDefault();
+    }
+
+    // Set up touch handlers initially
+    setupTouchHandlers();
+    
+    // Re-setup touch handlers when deck list is updated
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                const addedNodes = Array.from(mutation.addedNodes);
+                const hasEnhancedCards = addedNodes.some(node => 
+                    node.nodeType === Node.ELEMENT_NODE && 
+                    (node.classList?.contains('enhanced-deck-card') || 
+                     node.querySelector?.('.enhanced-deck-card'))
+                );
+                
+                if (hasEnhancedCards) {
+                    setTimeout(setupTouchHandlers, 100);
+                }
+            }
+        });
+    });
+    
+    const deckList = document.getElementById('deck-list');
+    if (deckList) {
+        observer.observe(deckList, { childList: true, subtree: true });
+    }
+    
+    // Add swipe gestures for suggestions
+    function setupSuggestionSwipes() {
+        document.addEventListener('touchstart', (e) => {
+            const suggestion = e.target.closest('.suggestion-item');
+            if (suggestion) {
+                suggestion.touchStartX = e.touches[0].clientX;
+                suggestion.touchStartTime = Date.now();
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            const suggestion = e.target.closest('.suggestion-item');
+            if (suggestion && suggestion.touchStartX !== undefined) {
+                const deltaX = e.changedTouches[0].clientX - suggestion.touchStartX;
+                const timeDelta = Date.now() - suggestion.touchStartTime;
+                
+                // Swipe right to add card quickly
+                if (deltaX > 100 && timeDelta < 500) {
+                    const addBtn = suggestion.querySelector('.suggestion-add-btn');
+                    if (addBtn) {
+                        addBtn.click();
+                        
+                        // Visual feedback
+                        suggestion.style.transform = 'translateX(100px)';
+                        suggestion.style.opacity = '0.5';
+                        setTimeout(() => {
+                            suggestion.style.transform = '';
+                            suggestion.style.opacity = '';
+                        }, 300);
+                        
+                        // Haptic feedback
+                        if (navigator.vibrate) {
+                            navigator.vibrate(100);
+                        }
+                    }
+                }
+                
+                delete suggestion.touchStartX;
+                delete suggestion.touchStartTime;
+            }
+        });
+    }
+    
+    setupSuggestionSwipes();
+    
+    // Add pinch-to-zoom for mana curve
+    function setupPinchZoom() {
+        let initialDistance = 0;
+        let initialScale = 1;
+        
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                const manaCurve = e.target.closest('.mana-curve-bars');
+                if (manaCurve) {
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    initialDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    initialScale = parseFloat(manaCurve.style.transform?.match(/scale\(([^)]+)\)/)?.[1] || 1);
+                }
+            }
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                const manaCurve = e.target.closest('.mana-curve-bars');
+                if (manaCurve && initialDistance > 0) {
+                    e.preventDefault();
+                    
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    
+                    const scale = Math.max(0.5, Math.min(2, initialScale * (currentDistance / initialDistance)));
+                    manaCurve.style.transform = `scale(${scale})`;
+                    manaCurve.style.transformOrigin = 'center center';
+                }
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                initialDistance = 0;
+            }
+        });
+    }
+    
+    setupPinchZoom();
+}
+
 // Make functions globally available
 window.toggleFabMenu = toggleFabMenu;
 window.initFAB = initFAB;
@@ -1155,3 +1827,4 @@ window.openDeckBuilder = openDeckBuilder;
 window.startCardScan = startCardScan;
 window.launchARPreview = launchARPreview;
 window.openProfile = openProfile;
+window.addMobileTouchSupport = addMobileTouchSupport;

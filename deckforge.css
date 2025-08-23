@@ -1462,7 +1462,7 @@ body {
   }
 }
 
-/* Floating Action Button (FAB) */
+/* Floating Action Button (FAB) - Enhanced Hybrid Version */
 .fab-container {
   position: fixed;
   bottom: 100px; /* Above bottom navigation */
@@ -1480,7 +1480,7 @@ body {
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1495,6 +1495,14 @@ body {
 
 .fab-main:active {
   transform: scale(0.95);
+}
+
+.fab-main.rotating {
+  transform: rotate(45deg);
+}
+
+.fab-main.rotating:hover {
+  transform: rotate(45deg) scale(1.1);
 }
 
 .fab-main::before {
@@ -1542,32 +1550,32 @@ body {
   border: 2px solid var(--red-primary);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   opacity: 0;
-  transform: translateX(20px);
-  animation: fabActionSlideIn 0.3s ease forwards;
+  transform: translateY(20px) translateX(20px);
+  animation: fabActionSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
 .fab-actions button:nth-child(1) { animation-delay: 0.1s; }
-.fab-actions button:nth-child(2) { animation-delay: 0.2s; }
-.fab-actions button:nth-child(3) { animation-delay: 0.3s; }
-.fab-actions button:nth-child(4) { animation-delay: 0.4s; }
+.fab-actions button:nth-child(2) { animation-delay: 0.15s; }
+.fab-actions button:nth-child(3) { animation-delay: 0.2s; }
+.fab-actions button:nth-child(4) { animation-delay: 0.25s; }
 
 @keyframes fabActionSlideIn {
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0) translateX(0);
   }
 }
 
 .fab-actions button:hover {
   background-color: var(--red-primary);
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+  transform: scale(1.15);
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.5);
 }
 
 .fab-actions button:active {

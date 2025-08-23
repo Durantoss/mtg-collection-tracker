@@ -1,0 +1,717 @@
+/* Enhanced Deck Builder Styles */
+/* Supports fuzzy search, drag & drop, real-time stats, and smooth animations */
+
+/* Enhanced Search Interface */
+.enhanced-search-container {
+    margin: 1rem 0;
+    position: relative;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.enhanced-search-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    background: rgba(42, 26, 77, 0.5);
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.enhanced-search-input:focus {
+    outline: none;
+    border-color: var(--red-primary);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    background: rgba(42, 26, 77, 0.8);
+}
+
+.search-shortcuts {
+    display: flex;
+    align-items: center;
+}
+
+.shortcut-hint {
+    font-size: 0.8rem;
+    color: rgba(240, 230, 210, 0.6);
+    background: rgba(42, 26, 77, 0.3);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* Card Suggestions Dropdown */
+.card-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #2a1a4d, #1a0f2f);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    margin-top: 0.5rem;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.suggestion-item:hover,
+.suggestion-item.highlighted {
+    background: rgba(255, 215, 0, 0.1);
+    transform: translateX(4px);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.suggestion-name {
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.suggestion-mana {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.suggestion-details {
+    font-size: 0.85rem;
+    color: rgba(240, 230, 210, 0.7);
+}
+
+.suggestion-add-btn {
+    background: linear-gradient(135deg, var(--red-primary), #c0392b);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.suggestion-add-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.no-suggestions {
+    padding: 1rem;
+    text-align: center;
+    color: rgba(240, 230, 210, 0.6);
+    font-style: italic;
+}
+
+/* Advanced Stats Display */
+.advanced-stats-container {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(42, 26, 77, 0.3), rgba(26, 15, 47, 0.3));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: rgba(42, 26, 77, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.2);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: rgba(240, 230, 210, 0.7);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--red-primary);
+    transition: all 0.3s ease;
+}
+
+/* Mana Curve Visualization */
+.mana-curve-container {
+    margin: 1.5rem 0;
+}
+
+.mana-curve-container h4 {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.mana-curve-bars {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    height: 120px;
+    padding: 0.5rem;
+    background: rgba(26, 15, 47, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.mana-bar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    position: relative;
+}
+
+.bar-fill {
+    width: 100%;
+    background: linear-gradient(to top, var(--red-primary), #f39c12);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 2px;
+    margin-top: auto;
+}
+
+.bar-label {
+    font-size: 0.8rem;
+    color: rgba(240, 230, 210, 0.8);
+    margin-top: 0.25rem;
+    font-weight: 600;
+}
+
+.bar-count {
+    position: absolute;
+    top: -1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 600;
+    background: rgba(42, 26, 77, 0.8);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mana-bar:hover .bar-count {
+    opacity: 1;
+}
+
+/* Color Distribution */
+.color-spread-container,
+.type-breakdown-container {
+    margin: 1.5rem 0;
+}
+
+.color-spread-container h4,
+.type-breakdown-container h4 {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+#color-spread-display {
+    display: flex;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.color-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+    min-width: 60px;
+}
+
+.color-segment:nth-child(1) { background: linear-gradient(135deg, #f8f9fa, #e9ecef); color: #333; }
+.color-segment:nth-child(2) { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+.color-segment:nth-child(3) { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; }
+.color-segment:nth-child(4) { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+.color-segment:nth-child(5) { background: linear-gradient(135deg, #27ae60, #229954); color: white; }
+.color-segment:nth-child(6) { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
+
+.color-segment:hover {
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.color-name,
+.color-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.no-colors,
+.no-types {
+    text-align: center;
+    padding: 1rem;
+    color: rgba(240, 230, 210, 0.6);
+    font-style: italic;
+    background: rgba(42, 26, 77, 0.2);
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 215, 0, 0.3);
+}
+
+/* Type Breakdown */
+#type-breakdown-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+
+.type-segment {
+    background: rgba(42, 26, 77, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.type-segment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.type-name {
+    display: block;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+}
+
+.type-count {
+    font-size: 0.9rem;
+    color: rgba(240, 230, 210, 0.8);
+}
+
+/* Enhanced Deck Cards */
+.enhanced-deck-card {
+    background: linear-gradient(135deg, rgba(42, 26, 77, 0.6), rgba(26, 15, 47, 0.6));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.enhanced-deck-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+    border-color: var(--red-primary);
+}
+
+.enhanced-deck-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg) scale(1.05);
+    z-index: 1000;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.deck-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.deck-card-name {
+    font-weight: 700;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.deck-card-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.card-type {
+    color: var(--red-primary);
+    font-weight: 600;
+}
+
+.card-cmc {
+    color: rgba(240, 230, 210, 0.8);
+}
+
+.card-set {
+    color: rgba(240, 230, 210, 0.6);
+}
+
+.card-mana-cost {
+    font-family: 'Mana', monospace;
+}
+
+.deck-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(26, 15, 47, 0.5);
+    border-radius: 8px;
+    padding: 0.25rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--red-primary), #c0392b);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.quantity-display {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.remove-from-deck-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-from-deck-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.drag-handle {
+    cursor: grab;
+    color: rgba(240, 230, 210, 0.5);
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+    color: var(--red-primary);
+    transform: scale(1.2);
+}
+
+.enhanced-deck-card:active .drag-handle {
+    cursor: grabbing;
+}
+
+/* Enhanced Modals */
+.enhanced-modal .modal-content {
+    background: linear-gradient(135deg, #2a1a4d, #1a0f2f);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.saved-deck-item {
+    background: rgba(42, 26, 77, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.saved-deck-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+    border-color: var(--red-primary);
+}
+
+.deck-info {
+    flex: 1;
+}
+
+.deck-name {
+    font-weight: 700;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.deck-details {
+    color: rgba(240, 230, 210, 0.8);
+    margin-bottom: 0.25rem;
+}
+
+.deck-date {
+    font-size: 0.85rem;
+    color: rgba(240, 230, 210, 0.6);
+}
+
+.deck-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Export Options */
+.export-options {
+    display: grid;
+    gap: 1rem;
+}
+
+.export-options .btn {
+    padding: 1rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.export-options .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(231, 76, 60, 0.3);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.card-suggestions {
+    animation: slideInUp 0.3s ease;
+}
+
+.suggestion-item {
+    animation: fadeIn 0.2s ease;
+}
+
+.stat-value {
+    animation: pulse 0.6s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .mana-curve-bars {
+        height: 100px;
+    }
+    
+    .enhanced-deck-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .deck-card-actions {
+        justify-content: space-between;
+    }
+    
+    .saved-deck-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .deck-actions {
+        justify-content: center;
+    }
+    
+    #color-spread-display {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .color-segment {
+        height: 40px;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .deck-card-details {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .quantity-controls {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .enhanced-search-input {
+        background: rgba(26, 15, 47, 0.8);
+    }
+    
+    .card-suggestions {
+        background: linear-gradient(135deg, #1a0f2f, #0f0a1f);
+    }
+    
+    .stat-card {
+        background: rgba(26, 15, 47, 0.6);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .enhanced-deck-card {
+        border-width: 2px;
+    }
+    
+    .suggestion-item {
+        border-bottom-width: 2px;
+    }
+    
+    .stat-card {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .enhanced-deck-card,
+    .suggestion-item,
+    .stat-card,
+    .quantity-btn,
+    .remove-from-deck-btn {
+        transition: none;
+    }
+    
+    .card-suggestions {
+        animation: none;
+    }
+    
+    .stat-value {
+        animation: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .enhanced-search-container,
+    .deck-card-actions,
+    .drag-handle {
+        display: none;
+    }
+    
+    .enhanced-deck-card {
+        background: white;
+        color: black;
+        border: 1px solid #ccc;
+    }
+}
