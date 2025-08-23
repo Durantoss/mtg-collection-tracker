@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mana Overlay Demo - MTG Collection Tracker</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mana-overlay.css">
+    
+    <style>
+        body {
+            padding: 20px;
+            background: radial-gradient(circle at center, #1e1e2f, #0c0c1c);
+            color: #f0e6d2;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(42, 26, 77, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .demo-card {
+            width: 300px;
+            height: 200px;
+            background: linear-gradient(135deg, #2e1f4d, #1a0f2f);
+            border: 2px solid gold;
+            border-radius: 15px;
+            margin: 20px;
+            padding: 15px;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        .card-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: gold;
+            margin-bottom: 10px;
+        }
+        
+        .card-type {
+            font-size: 0.9rem;
+            color: #f0e6d2;
+            opacity: 0.8;
+        }
+        
+        .interactive-demo {
+            margin: 20px 0;
+        }
+        
+        .selected-colors {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(60, 42, 110, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .color-list {
+            color: gold;
+            font-weight: bold;
+        }
+        
+        .demo-instructions {
+            background: rgba(67, 206, 162, 0.1);
+            border: 1px solid rgba(67, 206, 162, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .fallback-demo {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: gold; text-align: center; margin-bottom: 30px;">🎴 Mana Overlay System Demo</h1>
+    
+    <div class="demo-section">
+        <h2 style="color: gold;">Basic Mana Overlays</h2>
+        <p>These cards show mana overlays in the top-right corner. Hover over the cards to see the overlay effects.</p>
+        
+        <div class="demo-card" data-mana-cost="{2}{W}{U}">
+            <div class="card-name">Azorius Charm</div>
+            <div class="card-type">Instant</div>
+        </div>
+        
+        <div class="demo-card" data-mana-cost="{1}{R}{R}">
+            <div class="card-name">Lightning Bolt</div>
+            <div class="card-type">Instant</div>
+        </div>
+        
+        <div class="demo-card" data-mana-cost="{4}{G}{G}">
+            <div class="card-name">Primeval Titan</div>
+            <div class="card-type">Creature</div>
+        </div>
+        
+        <div class="demo-card" data-mana-cost="{B}{B}{B}">
+            <div class="card-name">Phyrexian Obliterator</div>
+            <div class="card-type">Creature</div>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2 style="color: gold;">Interactive Mana Overlays</h2>
+        <div class="demo-instructions">
+            <strong>Instructions:</strong> Click on the mana symbols in the overlays below to select/deselect mana colors. Selected colors will be highlighted and tracked.
+        </div>
+        
+        <div class="demo-card interactive-mana" data-mana-cost="{W}{U}{B}{R}{G}">
+            <div class="card-name">WUBRG Spell</div>
+            <div class="card-type">All Colors</div>
+        </div>
+        
+        <div class="demo-card interactive-mana" data-mana-cost="{2}{U}{R}">
+            <div class="card-name">Izzet Charm</div>
+            <div class="card-type">Instant</div>
+        </div>
+        
+        <div class="interactive-demo">
+            <div class="selected-colors">
+                <strong>Selected Mana Colors:</strong> <span class="color-list" id="selected-colors">None</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2 style="color: gold;">Different Sizes</h2>
+        <p>Mana overlays can be displayed in different sizes for various contexts.</p>
+        
+        <div class="demo-card" data-mana-cost="{3}{W}{W}" data-overlay-size="small">
+            <div class="card-name">Small Overlay</div>
+            <div class="card-type">Small size example</div>
+        </div>
+        
+        <div class="demo-card" data-mana-cost="{X}{U}{U}" data-overlay-size="large">
+            <div class="card-name">Large Overlay</div>
+            <div class="card-type">Large size example</div>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2 style="color: gold;">Fallback System</h2>
+        <div class="fallback-demo">
+            <strong>Note:</strong> Since the SVG mana symbol files are not created yet, the system will automatically fall back to styled text-based symbols that match the mana colors. This ensures the overlay system works even without the SVG files.
+        </div>
+        
+        <div class="demo-card" data-mana-cost="{C}{C}">
+            <div class="card-name">Colorless Spell</div>
+            <div class="card-type">Colorless mana</div>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2 style="color: gold;">Manual Overlay Creation</h2>
+        <p>You can also create overlays programmatically:</p>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="createManualOverlay()" style="background: linear-gradient(135deg, #3c2a6e, #2a1a4d); color: gold; border: 2px solid gold; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'Cinzel', serif;">
+                Create Manual Overlay
+            </button>
+            <div id="manual-overlay-container" style="margin-top: 15px; min-height: 50px; display: flex; align-items: center; gap: 10px;">
+                <!-- Manual overlay will be created here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="mana-overlay.js"></script>
+    
+    <script>
+        // Demo-specific functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update selected colors display
+            document.addEventListener('manaSelectionChanged', (event) => {
+                const selectedColors = event.detail.selectedColors;
+                const colorList = document.getElementById('selected-colors');
+                
+                if (selectedColors.length === 0) {
+                    colorList.textContent = 'None';
+                    colorList.style.color = '#f0e6d2';
+                } else {
+                    colorList.textContent = selectedColors.join(', ');
+                    colorList.style.color = 'gold';
+                }
+            });
+            
+            // Add interactive overlays to demo cards
+            setTimeout(() => {
+                document.querySelectorAll('.demo-card.interactive-mana').forEach(card => {
+                    const manaCost = card.dataset.manaCost;
+                    if (manaCost && window.manaOverlay) {
+                        window.manaOverlay.addOverlayToCard(card, manaCost, {
+                            interactive: true,
+                            showTooltips: true
+                        });
+                    }
+                });
+            }, 500);
+        });
+        
+        // Manual overlay creation function
+        function createManualOverlay() {
+            const container = document.getElementById('manual-overlay-container');
+            container.innerHTML = ''; // Clear previous
+            
+            if (window.manaOverlay) {
+                const overlay = window.manaOverlay.createOverlay(['W', 'U', 'B', 'R', 'G'], {
+                    interactive: true,
+                    position: 'relative',
+                    showTooltips: true
+                });
+                
+                if (overlay) {
+                    overlay.style.position = 'relative';
+                    overlay.style.top = 'auto';
+                    overlay.style.right = 'auto';
+                    container.appendChild(overlay);
+                    
+                    const label = document.createElement('span');
+                    label.textContent = 'Manually created overlay → ';
+                    label.style.color = '#f0e6d2';
+                    label.style.marginRight = '10px';
+                    container.insertBefore(label, overlay);
+                }
+            }
+        }
+        
+        // Add some demo logging
+        console.log('🎴 Mana Overlay Demo loaded!');
+        console.log('Available functions:');
+        console.log('- window.manaOverlay: Main overlay system');
+        console.log('- createManualOverlay(): Create a manual overlay');
+    </script>
+</body>
+</html>

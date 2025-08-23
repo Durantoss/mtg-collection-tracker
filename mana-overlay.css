@@ -1,0 +1,228 @@
+/* Mana Overlay Component Styles */
+.mana-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+
+.mana-overlay img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced hover effects matching project theme */
+.mana-overlay img:hover {
+  opacity: 1;
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+  border: 1px solid gold;
+}
+
+/* Interactive overlay for filtering */
+.mana-overlay.interactive {
+  cursor: pointer;
+  position: relative;
+}
+
+.mana-overlay.interactive img {
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.mana-overlay.interactive img:hover {
+  border-color: gold;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+.mana-overlay.interactive img.active {
+  border-color: gold;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.mana-overlay.interactive img.active::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 1px solid gold;
+  border-radius: 50%;
+  animation: pulseGold 2s ease-in-out infinite;
+}
+
+@keyframes pulseGold {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Size variations for different contexts */
+.mana-overlay.small img {
+  width: 16px;
+  height: 16px;
+}
+
+.mana-overlay.large img {
+  width: 24px;
+  height: 24px;
+}
+
+/* Positioning variations */
+.mana-overlay.top-left {
+  top: 8px;
+  left: 8px;
+  right: auto;
+}
+
+.mana-overlay.bottom-right {
+  top: auto;
+  bottom: 8px;
+  right: 8px;
+}
+
+.mana-overlay.bottom-left {
+  top: auto;
+  bottom: 8px;
+  left: 8px;
+  right: auto;
+}
+
+.mana-overlay.center {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+/* Card integration styles */
+.card-item {
+  position: relative;
+}
+
+.card-item .mana-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-item:hover .mana-overlay {
+  opacity: 1;
+}
+
+/* Search result integration */
+.search-card {
+  position: relative;
+}
+
+.search-card .mana-overlay {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+/* Deck builder integration */
+.deck-card-item .mana-overlay {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-left: auto;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .mana-overlay {
+    gap: 2px;
+  }
+  
+  .mana-overlay img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .mana-overlay.small img {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .mana-overlay.large img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mana-overlay img {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .mana-overlay.small img {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Tooltip styles for mana symbols */
+.mana-overlay img[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(42, 26, 77, 0.9);
+  color: gold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Cinzel', serif;
+  white-space: nowrap;
+  z-index: 1000;
+  border: 1px solid gold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading state */
+.mana-overlay.loading img {
+  opacity: 0.3;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Error state */
+.mana-overlay.error img {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mana-overlay img {
+    border: 2px solid #000;
+  }
+  
+  .mana-overlay.interactive img:hover,
+  .mana-overlay.interactive img.active {
+    border-color: #fff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .mana-overlay img,
+  .mana-overlay.interactive img.active::after {
+    transition: none;
+    animation: none;
+  }
+}

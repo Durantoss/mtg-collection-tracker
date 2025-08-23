@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Modal Demo - Deck Forge</title>
+    <link rel="stylesheet" href="deckforge.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            font-family: var(--font-body);
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .demo-title {
+            color: var(--red-primary);
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-family: var(--font-header);
+        }
+        
+        .demo-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .demo-card {
+            background: var(--bg-charcoal);
+            border: 2px solid var(--red-primary);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.3);
+        }
+        
+        .demo-card h3 {
+            color: var(--red-primary);
+            margin-bottom: 10px;
+        }
+        
+        .demo-card p {
+            color: var(--text-muted);
+            margin: 5px 0;
+        }
+        
+        .demo-instructions {
+            background: var(--bg-charcoal);
+            border: 1px solid var(--red-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 2rem;
+        }
+        
+        .demo-instructions h3 {
+            color: var(--red-primary);
+            margin-bottom: 15px;
+        }
+        
+        .demo-instructions ul {
+            text-align: left;
+            color: var(--text-muted);
+        }
+        
+        .demo-instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">🔥 Enhanced Card Modal Demo</h1>
+        
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">
+            Click on any card below to test the enhanced modal functionality
+        </p>
+        
+        <div class="demo-cards">
+            <div class="demo-card" onclick="openDemoCard('serra-angel')">
+                <h3>Serra Angel</h3>
+                <p><strong>Type:</strong> Creature — Angel</p>
+                <p><strong>Cost:</strong> 3WW</p>
+                <p><strong>P/T:</strong> 4/4</p>
+            </div>
+            
+            <div class="demo-card" onclick="openDemoCard('lightning-bolt')">
+                <h3>Lightning Bolt</h3>
+                <p><strong>Type:</strong> Instant</p>
+                <p><strong>Cost:</strong> R</p>
+                <p><strong>Damage:</strong> 3</p>
+            </div>
+            
+            <div class="demo-card" onclick="openDemoCard('black-lotus')">
+                <h3>Black Lotus</h3>
+                <p><strong>Type:</strong> Artifact</p>
+                <p><strong>Cost:</strong> 0</p>
+                <p><strong>Rarity:</strong> Special</p>
+            </div>
+            
+            <div class="demo-card" onclick="openDemoCard('jace-mind-sculptor')">
+                <h3>Jace, the Mind Sculptor</h3>
+                <p><strong>Type:</strong> Planeswalker</p>
+                <p><strong>Cost:</strong> 2UU</p>
+                <p><strong>Rarity:</strong> Mythic</p>
+            </div>
+        </div>
+        
+        <div class="demo-instructions">
+            <h3>Modal Features</h3>
+            <ul>
+                <li><strong>Tabbed Interface:</strong> Switch between Stats, Flavor, and Rulings tabs</li>
+                <li><strong>Image Zoom:</strong> Click the card image to zoom in/out</li>
+                <li><strong>Keyboard Navigation:</strong> Use Escape to close, 1/2/3 to switch tabs</li>
+                <li><strong>Action Buttons:</strong> Add to Deck, Add to Collection, and Favorite</li>
+                <li><strong>Responsive Design:</strong> Works on mobile, tablet, and desktop</li>
+                <li><strong>Dark Theme:</strong> Consistent with Deck Forge design</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Enhanced Card Preview Modal -->
+    <div class="card-modal" id="cardModal">
+        <div class="modal-header">
+            <span class="card-name" id="modalCardName">Serra Angel</span>
+            <span class="rarity-badge common" id="modalRarityBadge">Common</span>
+            <button class="close-btn card-modal-close" id="closeCardModal">✕</button>
+        </div>
+
+        <div class="card-image-wrapper">
+            <img src="" alt="Card Art" id="cardImage" />
+        </div>
+
+        <div class="card-tabs">
+            <button class="tab active" onclick="showCardTab('stats')">Stats</button>
+            <button class="tab" onclick="showCardTab('flavor')">Flavor</button>
+            <button class="tab" onclick="showCardTab('rulings')">Rulings</button>
+        </div>
+
+        <div class="tab-content" id="statsTab">
+            <div id="modalCardDetails">
+                <p><strong>Type:</strong> <span id="cardType">Creature — Angel</span></p>
+                <p><strong>Mana Cost:</strong> <span id="cardManaCost">3WW</span></p>
+                <p><strong>Power/Toughness:</strong> <span id="cardPowerToughness">4/4</span></p>
+                <p><strong>Abilities:</strong> <span id="cardAbilities">Flying, Vigilance</span></p>
+                <p><strong>Set:</strong> <span id="cardSet">Alpha</span></p>
+                <p><strong>Rarity:</strong> <span id="cardRarity">Uncommon</span></p>
+            </div>
+        </div>
+
+        <div class="tab-content hidden" id="flavorTab">
+            <p id="cardFlavorText">"Born of light, sworn to justice."</p>
+        </div>
+
+        <div class="tab-content hidden" id="rulingsTab">
+            <div id="cardRulings">
+                <p>Serra Angel does not tap when attacking due to Vigilance.</p>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="add-button" id="addToDeckBtn">Add to Deck</button>
+            <button class="favorite-button" id="addToCollectionBtn">★ Add to Collection</button>
+            <button class="favorite-button" id="favoriteBtn">♥ Favorite</button>
+        </div>
+    </div>
+
+    <script>
+        // Demo card data
+        const demoCards = {
+            'serra-angel': {
+                name: 'Serra Angel',
+                type_line: 'Creature — Angel',
+                mana_cost: '{3}{W}{W}',
+                power: '4',
+                toughness: '4',
+                oracle_text: 'Flying, vigilance',
+                set_name: 'Alpha',
+                rarity: 'uncommon',
+                flavor_text: '"Born of light, sworn to justice."',
+                image_url: 'https://cards.scryfall.io/normal/front/9/0/9067f035-3437-4c5c-bae9-d3c9001a3411.jpg?1600718440',
+                rulings: [
+                    {
+                        published_at: '2004-10-04',
+                        comment: 'Serra Angel does not tap when attacking due to vigilance.'
+                    }
+                ]
+            },
+            'lightning-bolt': {
+                name: 'Lightning Bolt',
+                type_line: 'Instant',
+                mana_cost: '{R}',
+                power: null,
+                toughness: null,
+                oracle_text: 'Lightning Bolt deals 3 damage to any target.',
+                set_name: 'Alpha',
+                rarity: 'common',
+                flavor_text: 'The sparkmage shrieked, calling on the rage of the storms of his youth. To his surprise, the sky responded with a fierce energy he had never thought to see again.',
+                image_url: 'https://cards.scryfall.io/normal/front/c/e/ce711943-c1a1-43a0-8b89-8d169cfb8e06.jpg?1628801721',
+                rulings: [
+                    {
+                        published_at: '2004-10-04',
+                        comment: 'Lightning Bolt can target any target, including players, creatures, and planeswalkers.'
+                    }
+                ]
+            },
+            'black-lotus': {
+                name: 'Black Lotus',
+                type_line: 'Artifact',
+                mana_cost: '{0}',
+                power: null,
+                toughness: null,
+                oracle_text: '{T}, Sacrifice Black Lotus: Add three mana of any one color.',
+                set_name: 'Alpha',
+                rarity: 'special',
+                flavor_text: 'The most powerful artifact ever created.',
+                image_url: 'https://cards.scryfall.io/normal/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg?1614638838',
+                rulings: [
+                    {
+                        published_at: '2004-10-04',
+                        comment: 'Black Lotus is restricted in Vintage and banned in all other formats.'
+                    }
+                ]
+            },
+            'jace-mind-sculptor': {
+                name: 'Jace, the Mind Sculptor',
+                type_line: 'Legendary Planeswalker — Jace',
+                mana_cost: '{2}{U}{U}',
+                power: null,
+                toughness: null,
+                oracle_text: '+2: Look at the top card of target player\'s library. You may put that card on the bottom of that player\'s library.\n0: Draw three cards, then put two cards from your hand on top of your library in any order.\n-1: Return target creature to its owner\'s hand.\n-12: Exile all cards from target player\'s library, then that player shuffles their hand into their library.',
+                set_name: 'Worldwake',
+                rarity: 'mythic',
+                flavor_text: '"The mind is a beautiful instrument to play."',
+                image_url: 'https://cards.scryfall.io/normal/front/c/0/c057dc0d-4017-4e60-9c5e-45fc569a8d31.jpg?1562440655',
+                rulings: [
+                    {
+                        published_at: '2010-03-01',
+                        comment: 'Jace\'s ultimate ability exiles all cards from the target player\'s library, not just nonland cards.'
+                    }
+                ]
+            }
+        };
+
+        // Function to set card rarity
+        function setCardRarity(rarity) {
+            const badge = document.querySelector('.rarity-badge');
+            if (badge) {
+                badge.className = `rarity-badge ${rarity.toLowerCase()}`;
+                badge.textContent = rarity;
+            }
+        }
+
+        // Global function for card modal tab switching
+        function showCardTab(tabName) {
+            const tabs = ['stats', 'flavor', 'rulings'];
+            tabs.forEach(name => {
+                const tabContent = document.getElementById(`${name}Tab`);
+                const tabButton = document.querySelector(`.tab[onclick="showCardTab('${name}')"]`);
+                
+                if (tabContent) {
+                    tabContent.classList.add('hidden');
+                }
+                if (tabButton) {
+                    tabButton.classList.remove('active');
+                }
+            });
+            
+            const activeTabContent = document.getElementById(`${tabName}Tab`);
+            const activeTabButton = document.querySelector(`.tab[onclick="showCardTab('${tabName}')"]`);
+            
+            if (activeTabContent) {
+                activeTabContent.classList.remove('hidden');
+            }
+            if (activeTabButton) {
+                activeTabButton.classList.add('active');
+            }
+        }
+
+        // Demo function to open card modal
+        function openDemoCard(cardKey) {
+            const card = demoCards[cardKey];
+            if (!card) return;
+
+            const modal = document.getElementById('cardModal');
+            const cardImage = document.getElementById('cardImage');
+            const cardName = document.getElementById('modalCardName');
+            
+            // Populate card data
+            cardName.textContent = card.name;
+            cardImage.src = card.image_url;
+            cardImage.alt = card.name;
+            
+            // Set rarity badge
+            setCardRarity(card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1));
+            
+            // Populate detailed information
+            document.getElementById('cardType').textContent = card.type_line;
+            document.getElementById('cardManaCost').textContent = card.mana_cost;
+            document.getElementById('cardPowerToughness').textContent = 
+                card.power && card.toughness ? `${card.power}/${card.toughness}` : 'N/A';
+            document.getElementById('cardAbilities').textContent = card.oracle_text;
+            document.getElementById('cardSet').textContent = card.set_name;
+            document.getElementById('cardRarity').textContent = 
+                card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1);
+            
+            // Flavor tab
+            document.getElementById('cardFlavorText').textContent = card.flavor_text;
+            
+            // Rulings tab
+            const rulingsDiv = document.getElementById('cardRulings');
+            if (card.rulings && card.rulings.length > 0) {
+                rulingsDiv.innerHTML = card.rulings.map(ruling => 
+                    `<p><strong>${ruling.published_at}:</strong> ${ruling.comment}</p>`
+                ).join('');
+            } else {
+                rulingsDiv.innerHTML = '<p>No rulings available for this card.</p>';
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+            modal.style.display = 'block';
+            
+            // Reset to stats tab
+            showCardTab('stats');
+        }
+
+        // Close modal functionality
+        function closeCardModal() {
+            const modal = document.getElementById('cardModal');
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            
+            // Reset image zoom
+            const cardImage = document.getElementById('cardImage');
+            cardImage.classList.remove('zoomed');
+        }
+
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('cardModal');
+            const closeBtn = document.getElementById('closeCardModal');
+            const cardImage = document.getElementById('cardImage');
+            
+            // Close button
+            closeBtn.onclick = closeCardModal;
+            
+            // Click outside to close
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    closeCardModal();
+                }
+            };
+            
+            // Image zoom functionality
+            cardImage.onclick = () => {
+                cardImage.classList.toggle('zoomed');
+            };
+            
+            // Action buttons (demo notifications)
+            document.getElementById('addToDeckBtn').onclick = () => {
+                alert('Demo: Card would be added to deck!');
+            };
+            
+            document.getElementById('addToCollectionBtn').onclick = () => {
+                alert('Demo: Card would be added to collection!');
+            };
+            
+            document.getElementById('favoriteBtn').onclick = () => {
+                alert('Demo: Card would be favorited!');
+            };
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!modal.classList.contains('active')) return;
+                
+                switch(e.key) {
+                    case 'Escape':
+                        closeCardModal();
+                        break;
+                    case '1':
+                        showCardTab('stats');
+                        break;
+                    case '2':
+                        showCardTab('flavor');
+                        break;
+                    case '3':
+                        showCardTab('rulings');
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

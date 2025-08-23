@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Modal Test - Deck Forge</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="deckforge.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flame-icon">
+                <path d="M12 2C12 2 8 6 8 12C8 16.4183 10.5817 19 12 19C13.4183 19 16 16.4183 16 12C16 6 12 2 12 2Z" fill="currentColor"/>
+                <path d="M12 19C12 19 10 21 10 22C10 22.5523 10.4477 23 11 23H13C13.5523 23 14 22.5523 14 22C14 21 12 19 12 19Z" fill="currentColor"/>
+            </svg>
+            <span>Card Modal Test</span>
+        </div>
+
+        <div class="section-header">
+            <h2>Test Card Modal</h2>
+            <p>Click on the cards below to test the modal functionality</p>
+        </div>
+
+        <!-- Test Cards Grid -->
+        <div class="card-grid">
+            <div class="card-thumb" onclick="testCardModal1()">
+                <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-magic" style="font-size: 2rem; margin-bottom: 8px; color: var(--red-primary);"></i>
+                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-light);">Serra Angel</p>
+                    <p style="font-size: 0.7rem; margin: 4px 0 0 0;">Click to view</p>
+                </div>
+            </div>
+            
+            <div class="card-thumb" onclick="testCardModal2()">
+                <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-fire" style="font-size: 2rem; margin-bottom: 8px; color: var(--red-primary);"></i>
+                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-light);">Lightning Bolt</p>
+                    <p style="font-size: 0.7rem; margin: 4px 0 0 0;">Click to view</p>
+                </div>
+            </div>
+            
+            <div class="card-thumb" onclick="testCardModal3()">
+                <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-shield-alt" style="font-size: 2rem; margin-bottom: 8px; color: var(--red-primary);"></i>
+                    <p style="font-size: 0.9rem; margin: 0; color: var(--text-light);">Counterspell</p>
+                    <p style="font-size: 0.7rem; margin: 4px 0 0 0;">Click to view</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Card Preview Modal -->
+    <div class="card-modal" id="cardModal">
+        <div class="modal-header">
+            <span class="card-name" id="modalCardName">Serra Angel</span>
+            <button class="close-btn card-modal-close" id="closeCardModal">✕</button>
+        </div>
+
+        <div class="card-image-wrapper">
+            <img src="" alt="Card Art" id="cardImage" />
+        </div>
+
+        <div class="card-tabs">
+            <button class="tab active" onclick="showCardTab('stats')">Stats</button>
+            <button class="tab" onclick="showCardTab('flavor')">Flavor</button>
+            <button class="tab" onclick="showCardTab('rulings')">Rulings</button>
+        </div>
+
+        <div class="tab-content" id="statsTab">
+            <div id="modalCardDetails">
+                <p><strong>Type:</strong> <span id="cardType">Creature — Angel</span></p>
+                <p><strong>Mana Cost:</strong> <span id="cardManaCost">3WW</span></p>
+                <p><strong>Power/Toughness:</strong> <span id="cardPowerToughness">4/4</span></p>
+                <p><strong>Abilities:</strong> <span id="cardAbilities">Flying, Vigilance</span></p>
+                <p><strong>Set:</strong> <span id="cardSet">Alpha</span></p>
+                <p><strong>Rarity:</strong> <span id="cardRarity">Uncommon</span></p>
+            </div>
+        </div>
+
+        <div class="tab-content hidden" id="flavorTab">
+            <p id="cardFlavorText">"Born of light, sworn to justice."</p>
+        </div>
+
+        <div class="tab-content hidden" id="rulingsTab">
+            <div id="cardRulings">
+                <p>Serra Angel does not tap when attacking due to Vigilance.</p>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="add-button" id="addToDeckBtn">Add to Deck</button>
+            <button class="favorite-button" id="addToCollectionBtn">★ Add to Collection</button>
+            <button class="favorite-button" id="favoriteBtn">♥ Favorite</button>
+        </div>
+    </div>
+
+    <!-- Simplified JavaScript for testing -->
+    <script>
+        // Test card data
+        const testCards = {
+            serraAngel: {
+                name: "Serra Angel",
+                type_line: "Creature — Angel",
+                mana_cost: "{3}{W}{W}",
+                power: "4",
+                toughness: "4",
+                oracle_text: "Flying, vigilance",
+                set_name: "Alpha",
+                rarity: "uncommon",
+                flavor_text: "Born of light, sworn to justice.",
+                image_url: "https://cards.scryfall.io/normal/front/9/0/9067f035-3437-4c5c-bae9-d3c9001a3411.jpg?1600718440"
+            },
+            lightningBolt: {
+                name: "Lightning Bolt",
+                type_line: "Instant",
+                mana_cost: "{R}",
+                power: null,
+                toughness: null,
+                oracle_text: "Lightning Bolt deals 3 damage to any target.",
+                set_name: "Alpha",
+                rarity: "common",
+                flavor_text: "The sparkmage shrieked, calling on the rage of the storms of his youth. To his surprise, the sky responded with a fierce energy he'd never thought to see again.",
+                image_url: "https://cards.scryfall.io/normal/front/c/e/ce711943-c1a1-43a0-8b89-8d169cfb8e06.jpg?1628801721"
+            },
+            counterspell: {
+                name: "Counterspell",
+                type_line: "Instant",
+                mana_cost: "{U}{U}",
+                power: null,
+                toughness: null,
+                oracle_text: "Counter target spell.",
+                set_name: "Alpha",
+                rarity: "uncommon",
+                flavor_text: "The art of war is simple enough. Find out where your enemy is. Get at him as soon as you can. Strike him as hard as you can, and keep moving on.",
+                image_url: "https://cards.scryfall.io/normal/front/1/9/1920dae4-fb92-4f19-ae4b-eb3276b8dac7.jpg?1628801663"
+            }
+        };
+
+        // Modal functionality
+        function openCardModal(card) {
+            const modal = document.getElementById('cardModal');
+            const cardImage = document.getElementById('cardImage');
+            const cardName = document.getElementById('modalCardName');
+            
+            // Populate card data
+            if (card) {
+                cardName.textContent = card.name || 'Unknown Card';
+                cardImage.src = card.image_url || '';
+                cardImage.alt = card.name || 'Card Image';
+                
+                // Populate detailed information
+                populateCardDetails(card);
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+            modal.style.display = 'block';
+            
+            // Set up event listeners
+            setupCardModalEvents();
+            
+            // Initialize with stats tab active
+            showCardTab('stats');
+        }
+
+        function populateCardDetails(card) {
+            // Stats tab
+            document.getElementById('cardType').textContent = card.type_line || 'Unknown Type';
+            document.getElementById('cardManaCost').textContent = card.mana_cost || 'N/A';
+            document.getElementById('cardPowerToughness').textContent = 
+                card.power && card.toughness ? `${card.power}/${card.toughness}` : 'N/A';
+            document.getElementById('cardAbilities').textContent = 
+                card.oracle_text || 'No abilities listed';
+            document.getElementById('cardSet').textContent = card.set_name || 'Unknown Set';
+            document.getElementById('cardRarity').textContent = 
+                card.rarity ? card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1) : 'Unknown';
+            
+            // Flavor tab
+            const flavorText = document.getElementById('cardFlavorText');
+            flavorText.textContent = card.flavor_text || 'No flavor text available.';
+            
+            // Rulings tab
+            const rulingsDiv = document.getElementById('cardRulings');
+            if (card.rulings && card.rulings.length > 0) {
+                rulingsDiv.innerHTML = card.rulings.map(ruling => 
+                    `<p><strong>${ruling.published_at}:</strong> ${ruling.comment}</p>`
+                ).join('');
+            } else {
+                rulingsDiv.innerHTML = '<p>No specific rulings available for this card.</p>';
+            }
+        }
+
+        function setupCardModalEvents() {
+            const modal = document.getElementById('cardModal');
+            const closeBtn = document.getElementById('closeCardModal');
+            const cardImage = document.getElementById('cardImage');
+            
+            // Close button
+            closeBtn.onclick = () => closeCardModal();
+            
+            // Click outside to close
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    closeCardModal();
+                }
+            };
+            
+            // Image zoom functionality
+            cardImage.onclick = () => {
+                cardImage.classList.toggle('zoomed');
+            };
+            
+            // Action buttons
+            document.getElementById('addToDeckBtn').onclick = () => {
+                alert('Card would be added to deck!');
+            };
+            
+            document.getElementById('addToCollectionBtn').onclick = () => {
+                alert('Card would be added to collection!');
+            };
+            
+            document.getElementById('favoriteBtn').onclick = () => {
+                alert('Card would be favorited!');
+            };
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', handleModalKeydown);
+        }
+
+        function closeCardModal() {
+            const modal = document.getElementById('cardModal');
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+            
+            // Remove keyboard listener
+            document.removeEventListener('keydown', handleModalKeydown);
+            
+            // Reset image zoom
+            const cardImage = document.getElementById('cardImage');
+            cardImage.classList.remove('zoomed');
+        }
+
+        function handleModalKeydown(e) {
+            const modal = document.getElementById('cardModal');
+            if (!modal.classList.contains('active')) return;
+            
+            switch(e.key) {
+                case 'Escape':
+                    closeCardModal();
+                    break;
+                case '1':
+                    showCardTab('stats');
+                    break;
+                case '2':
+                    showCardTab('flavor');
+                    break;
+                case '3':
+                    showCardTab('rulings');
+                    break;
+            }
+        }
+
+        function showCardTab(tabName) {
+            const tabs = ['stats', 'flavor', 'rulings'];
+            
+            // Hide all tab contents and deactivate all tabs
+            tabs.forEach(name => {
+                const tabContent = document.getElementById(`${name}Tab`);
+                const tabButton = document.querySelector(`.card-tabs .tab[onclick*="${name}"]`);
+                
+                if (tabContent) {
+                    tabContent.classList.add('hidden');
+                }
+                if (tabButton) {
+                    tabButton.classList.remove('active');
+                }
+            });
+            
+            // Show active tab content and activate tab button
+            const activeTabContent = document.getElementById(`${tabName}Tab`);
+            const activeTabButton = document.querySelector(`.card-tabs .tab[onclick*="${tabName}"]`);
+            
+            if (activeTabContent) {
+                activeTabContent.classList.remove('hidden');
+            }
+            if (activeTabButton) {
+                activeTabButton.classList.add('active');
+            }
+        }
+
+        // Test functions
+        function testCardModal1() {
+            openCardModal(testCards.serraAngel);
+        }
+
+        function testCardModal2() {
+            openCardModal(testCards.lightningBolt);
+        }
+
+        function testCardModal3() {
+            openCardModal(testCards.counterspell);
+        }
+    </script>
+</body>
+</html>

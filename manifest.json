@@ -1,6 +1,6 @@
 {
-  "name": "MTG Tracker",
-  "short_name": "MTG",
+  "name": "Deck Forge",
+  "short_name": "Deck Forge",
   "description": "Track your Magic: The Gathering card collection with price monitoring, rules reference, and comprehensive search functionality",
   "start_url": "/",
   "display": "standalone",

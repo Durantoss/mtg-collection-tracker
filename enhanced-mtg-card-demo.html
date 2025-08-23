@@ -274,6 +274,8 @@
                 <ul>
                     <li>Quantity controls with +/- buttons</li>
                     <li>Multiple price source tracking</li>
+                    <li>Expandable card details with flavor text and rulings</li>
+                    <li>Dynamic content loading from Scryfall API</li>
                     <li>Swipe gestures on mobile devices</li>
                     <li>Keyboard shortcuts for power users</li>
                     <li>Card preview on image click</li>
@@ -403,6 +405,11 @@ cardComponent.getElement().addEventListener('mtg-card-update', (event) => {
                 quantity: 2,
                 isFoil: true,
                 imageUrl: "https://cards.scryfall.io/normal/front/9/0/9067f035-3437-4c5c-bae9-d3c9001a3411.jpg",
+                flavorText: "Flying high above the clouds, she watches over the battlefield with divine grace.",
+                rulings: [
+                    { comment: "Serra Angel does not tap when attacking." },
+                    { comment: "Flying means this creature can't be blocked except by creatures with flying or reach." }
+                ],
                 prices: {
                     scryfall: { price: 0.25, lastUpdated: "2024-01-01T00:00:00Z" },
                     tcgplayer: { price: 0.30, lastUpdated: "2024-01-01T00:00:00Z" },

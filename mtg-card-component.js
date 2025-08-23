@@ -93,6 +93,7 @@ class MTGCardComponent {
                 ${this.generatePriceSection()}
                 ${this.generateCardActions()}
                 ${this.generateCardNotes()}
+                ${this.generateExpandableDetails()}
             </div>
         `;
     }
@@ -286,6 +287,101 @@ class MTGCardComponent {
         `;
     }
 
+    generateExpandableDetails() {
+        return `
+            <div class="card-extra">
+                <button class="toggle-extra" data-action="toggle-details">
+                    Show Details
+                </button>
+                <div class="extra-content">
+                    <div class="loading-content" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        Loading card details...
+                    </div>
+                    <div class="details-content">
+                        ${this.generateFlavorText()}
+                        ${this.generateRulings()}
+                        ${this.generatePriceHistory()}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    generateFlavorText() {
+        const flavorText = this.cardData.flavorText || this.cardData.flavor_text;
+        if (!flavorText) return '';
+        
+        return `
+            <div class="flavor-text">
+                <p><strong>Flavor:</strong> "${this.escapeHtml(flavorText)}"</p>
+            </div>
+        `;
+    }
+
+    generateRulings() {
+        const rulings = this.cardData.rulings || [];
+        if (rulings.length === 0) return '';
+        
+        return `
+            <div class="rulings-text">
+                <p><strong>Rulings:</strong></p>
+                ${rulings.map(ruling => `
+                    <p>• ${this.escapeHtml(ruling.comment || ruling)}</p>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    generatePriceHistory() {
+        const priceHistory = this.cardData.priceHistory;
+        if (!priceHistory || !priceHistory.length) {
+            return this.generateMockPriceHistory();
+        }
+        
+        const latest = priceHistory[priceHistory.length - 1];
+        const previous = priceHistory[priceHistory.length - 2];
+        
+        if (!previous) return '';
+        
+        const change = latest.price - previous.price;
+        const isPositive = change > 0;
+        
+        return `
+            <div class="price-history">
+                <p><strong>Price History:</strong> 
+                    $${previous.price.toFixed(2)} → $${latest.price.toFixed(2)} 
+                    <span class="price-trend ${isPositive ? '' : 'negative'}">
+                        (${isPositive ? '+' : ''}${change.toFixed(2)})
+                    </span>
+                    <span style="opacity: 0.7; font-size: 0.8em;">last 30 days</span>
+                </p>
+            </div>
+        `;
+    }
+
+    generateMockPriceHistory() {
+        const currentPrice = this.getPrimaryPrice();
+        if (currentPrice === 0) return '';
+        
+        // Generate a mock price change for demonstration
+        const previousPrice = currentPrice * (0.85 + Math.random() * 0.3); // ±15% variation
+        const change = currentPrice - previousPrice;
+        const isPositive = change > 0;
+        
+        return `
+            <div class="price-history">
+                <p><strong>Price History:</strong> 
+                    $${previousPrice.toFixed(2)} → $${currentPrice.toFixed(2)} 
+                    <span class="price-trend ${isPositive ? '' : 'negative'}">
+                        (${isPositive ? '+' : ''}${change.toFixed(2)})
+                    </span>
+                    <span style="opacity: 0.7; font-size: 0.8em;">last 30 days</span>
+                </p>
+            </div>
+        `;
+    }
+
     bindEvents() {
         if (!this.element) return;
         
@@ -329,6 +425,108 @@ class MTGCardComponent {
             case 'remove-card':
                 this.removeCard();
                 break;
+            case 'toggle-details':
+                this.toggleExpandableDetails(event.target);
+                break;
+        }
+    }
+
+    toggleExpandableDetails(button) {
+        const cardExtra = button.closest('.card-extra');
+        const isOpen = cardExtra.classList.contains('open');
+        
+        if (isOpen) {
+            // Close the details
+            cardExtra.classList.remove('open');
+            button.textContent = 'Show Details';
+        } else {
+            // Open the details
+            cardExtra.classList.add('open');
+            button.textContent = 'Hide Details';
+            
+            // Load additional details if needed
+            this.loadAdditionalDetails(cardExtra);
+        }
+        
+        // Add ripple effect
+        this.addRippleEffect(button);
+    }
+
+    async loadAdditionalDetails(cardExtra) {
+        const loadingContent = cardExtra.querySelector('.loading-content');
+        const detailsContent = cardExtra.querySelector('.details-content');
+        
+        // If we already have flavor text and rulings, no need to fetch
+        if (this.cardData.flavorText || this.cardData.flavor_text || 
+            (this.cardData.rulings && this.cardData.rulings.length > 0)) {
+            return;
+        }
+        
+        // Show loading state
+        if (loadingContent) {
+            loadingContent.style.display = 'flex';
+        }
+        if (detailsContent) {
+            detailsContent.style.display = 'none';
+        }
+        
+        try {
+            // Fetch additional card details from Scryfall API
+            const cardName = encodeURIComponent(this.cardData.name);
+            const setCode = this.cardData.setCode || this.cardData.set;
+            
+            let apiUrl = `https://api.scryfall.com/cards/named?fuzzy=${cardName}`;
+            if (setCode) {
+                apiUrl += `&set=${setCode}`;
+            }
+            
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+                const cardData = await response.json();
+                
+                // Update card data with fetched information
+                if (cardData.flavor_text && !this.cardData.flavorText) {
+                    this.cardData.flavorText = cardData.flavor_text;
+                }
+                
+                // Fetch rulings if available
+                if (cardData.rulings_uri) {
+                    const rulingsResponse = await fetch(cardData.rulings_uri);
+                    if (rulingsResponse.ok) {
+                        const rulingsData = await rulingsResponse.json();
+                        this.cardData.rulings = rulingsData.data || [];
+                    }
+                }
+                
+                // Regenerate the details content with new data
+                if (detailsContent) {
+                    detailsContent.innerHTML = `
+                        ${this.generateFlavorText()}
+                        ${this.generateRulings()}
+                        ${this.generatePriceHistory()}
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching card details:', error);
+            
+            // Show error message
+            if (detailsContent) {
+                detailsContent.innerHTML = `
+                    <p style="color: rgba(248, 113, 113, 0.8); font-style: italic;">
+                        <strong>Error:</strong> Could not load additional card details.
+                    </p>
+                    ${this.generatePriceHistory()}
+                `;
+            }
+        } finally {
+            // Hide loading state
+            if (loadingContent) {
+                loadingContent.style.display = 'none';
+            }
+            if (detailsContent) {
+                detailsContent.style.display = 'block';
+            }
         }
     }
 

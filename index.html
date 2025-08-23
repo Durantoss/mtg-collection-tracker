@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTG Collection Tracker</title>
+    <title>Deck Forge</title>
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Track your Magic: The Gathering card collection with price monitoring, rules reference, and comprehensive search functionality">
@@ -16,7 +16,7 @@
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="MTG Tracker">
+    <meta name="apple-mobile-web-app-title" content="Deck Forge">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     
     <!-- Windows PWA Support -->
@@ -28,15 +28,10 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="mobile-fixes.css">
-    <link rel="stylesheet" href="mobile-ui-enhanced.css">
-    <link rel="stylesheet" href="mobile-phone-optimized.css">
-    <link rel="stylesheet" href="import-progress-styles.css">
-    <link rel="stylesheet" href="card-scanner.css">
+    <link rel="stylesheet" href="deckforge.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Supabase JavaScript Library -->
@@ -49,362 +44,310 @@
     <script src="https://cdn.jsdelivr.net/npm/blockhash-core@1.0.0/dist/blockhash.min.js"></script>
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
-        <i class="fas fa-bars"></i>
-    </button>
-    
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    
     <div class="container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
-            <h1 class="logo">MTG Tracker</h1>
-            <nav>
-                <ul>
-                    <li class="nav-item active" data-tab="collection">
-                        <i class="fas fa-cards-blank"></i> Collection
-                    </li>
-                    <li class="nav-item admin-nav-item" data-tab="admin" style="display: none;">
-                        <i class="fas fa-radiation-alt"></i> Admin
-                    </li>
-                    <li class="nav-item" data-tab="search">
-                        <i class="fas fa-search"></i> Search
-                    </li>
-                    <li class="nav-item" data-tab="prices">
-                        <i class="fas fa-dollar-sign"></i> Prices
-                    </li>
-                    <li class="nav-item" data-tab="rules">
-                        <i class="fas fa-book"></i> Rules
-                    </li>
-                    <li class="nav-item" data-tab="dictionary">
-                        <i class="fas fa-spell-check"></i> Dictionary
-                    </li>
-                    <li class="nav-item" data-tab="deck-builder">
-                        <i class="fas fa-hammer"></i> Deck Builder
-                    </li>
-                </ul>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- User Profile -->
-            <div class="user-profile">
-                <div class="avatar"></div>
-                <div class="user-info">
-                    <span class="username" id="current-username">Guest</span>
-                    <span class="role" id="current-role">USER</span>
-                </div>
-                <button class="logout" id="auth-btn">
-                    <span id="auth-btn-text">Sign In</span>
+        <!-- 🔥 Header -->
+        <div class="header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flame-icon">
+                <path d="M12 2C12 2 8 6 8 12C8 16.4183 10.5817 19 12 19C13.4183 19 16 16.4183 16 12C16 6 12 2 12 2Z" fill="currentColor"/>
+                <path d="M12 19C12 19 10 21 10 22C10 22.5523 10.4477 23 11 23H13C13.5523 23 14 22.5523 14 22C14 21 12 19 12 19Z" fill="currentColor"/>
+            </svg>
+            <span>Deck Forge</span>
+            <div class="user-profile-mini">
+                <div class="avatar-mini"></div>
+                <button class="auth-btn-mini" id="auth-btn-mini">
+                    <span id="auth-btn-text-mini">Sign In</span>
                 </button>
             </div>
+        </div>
 
-            <!-- Collection Section -->
-            <section class="collection-section tab-content active" id="collection">
-                <h2>My Collection</h2>
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3>Total Cards</h3>
-                        <p id="total-cards">0</p>
+        <!-- Current Section Content -->
+        <div class="main-content" id="main-content">
+            <!-- Collection Section (Default) -->
+            <section class="section active" id="collection-section">
+                <!-- 🔍 Search Bar -->
+                <input type="text" class="search-bar" id="collection-search" placeholder="Search cards..." />
+
+                <!-- 🧩 Filter Chips -->
+                <div class="filters" id="filter-chips">
+                    <span class="filter-chip active" data-filter="color" data-value="R">Red</span>
+                    <span class="filter-chip" data-filter="type" data-value="Creature">Creature</span>
+                    <span class="filter-chip" data-filter="rarity" data-value="rare">Rare</span>
+                    <span class="filter-chip" data-filter="set" data-value="">Set</span>
+                </div>
+
+                <!-- Deck Progress Bar -->
+                <div class="deck-progress">
+                    <div class="progress-fill"></div>
+                </div>
+
+                <!-- Collection Stats -->
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <span class="stat-value" id="total-cards">0</span>
+                        <span class="stat-label">Cards</span>
                     </div>
-                    <div class="stat-card">
-                        <h3>Total Value</h3>
-                        <p id="total-value">$0.00</p>
+                    <div class="stat-mini">
+                        <span class="stat-value" id="total-value">$0</span>
+                        <span class="stat-label">Value</span>
                     </div>
-                    <div class="stat-card">
-                        <h3>Unique Cards</h3>
-                        <p id="unique-cards">0</p>
+                    <div class="stat-mini">
+                        <span class="stat-value" id="unique-cards">0</span>
+                        <span class="stat-label">Unique</span>
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="actions">
-                    <button class="scan" id="scan-card-btn">
-                        <i class="fas fa-camera"></i> Scan Card
-                    </button>
-                    <button class="add" id="add-card-btn">
-                        <i class="fas fa-plus"></i> Add Card
-                    </button>
-                </div>
-
-                <!-- Search & Filters -->
-                <div class="search-bar">
-                    <input type="text" id="collection-search" placeholder="Search your collection..." />
-                    <select id="condition-filter">
-                        <option value="">All Conditions</option>
-                        <option value="Near Mint">Near Mint</option>
-                        <option value="Lightly Played">Lightly Played</option>
-                        <option value="Moderately Played">Moderately Played</option>
-                        <option value="Heavily Played">Heavily Played</option>
-                        <option value="Damaged">Damaged</option>
-                    </select>
-                    <select id="set-filter">
-                        <option value="">All Sets</option>
-                    </select>
-                    <button class="search-btn">Search</button>
-                </div>
-
-                <!-- Collection Grid -->
-                <div class="collection-grid" id="collection-grid">
+                <!-- 🃏 Card Grid -->
+                <div class="card-grid" id="collection-grid">
                     <!-- Collection cards will be populated here -->
+                    <div class="empty-state" id="empty-state">
+                        <i class="fas fa-cards-blank"></i>
+                        <p>No cards in your collection yet</p>
+                        <p>Tap the scan button to add cards!</p>
+                    </div>
                 </div>
 
-                <!-- Empty State Message -->
-                <p class="empty-message">No cards in your collection yet.<br>Click 'Add Card' to start building your collection!</p>
+                <!-- 📷 Scan Button -->
+                <button class="scan-button" id="scan-card-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23 19C23 20.1046 22.1046 21 21 21H3C1.89543 21 1 20.1046 1 19V8C1 6.89543 1.89543 6 3 6H7L9 4H15L17 6H21C22.1046 6 23 6.89543 23 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Scan Card
+                </button>
             </section>
 
-            <!-- Search Tab -->
-            <div class="tab-content" id="search">
-                <h2>Card Search</h2>
-                <div class="search-form">
-                    <input type="text" id="card-search" placeholder="Search for cards...">
-                    <div class="search-filters">
-                        <select id="color-filter">
-                            <option value="">All Colors</option>
-                            <option value="W">White</option>
-                            <option value="U">Blue</option>
-                            <option value="B">Black</option>
-                            <option value="R">Red</option>
-                            <option value="G">Green</option>
-                            <option value="C">Colorless</option>
-                        </select>
-                        <select id="type-filter">
-                            <option value="">All Types</option>
-                            <option value="Creature">Creature</option>
-                            <option value="Instant">Instant</option>
-                            <option value="Sorcery">Sorcery</option>
-                            <option value="Enchantment">Enchantment</option>
-                            <option value="Artifact">Artifact</option>
-                            <option value="Planeswalker">Planeswalker</option>
-                            <option value="Land">Land</option>
-                        </select>
-                        <select id="search-set-filter">
-                            <option value="">All Sets</option>
-                        </select>
-                        <div class="search-options">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="show-variations">
-                                <span class="checkmark"></span>
-                                Show All Variations & Sets
-                            </label>
-                        </div>
-                        <button class="btn btn-primary" id="search-btn">Search</button>
-                    </div>
+            <!-- Search Section -->
+            <section class="section" id="search-section">
+                <div class="section-header">
+                    <h2>Card Search</h2>
                 </div>
+                
+                <input type="text" class="search-bar" id="card-search" placeholder="Search for cards...">
+                
+                <div class="search-filters">
+                    <select id="color-filter" class="filter-select">
+                        <option value="">All Colors</option>
+                        <option value="W">White</option>
+                        <option value="U">Blue</option>
+                        <option value="B">Black</option>
+                        <option value="R">Red</option>
+                        <option value="G">Green</option>
+                        <option value="C">Colorless</option>
+                    </select>
+                    <select id="type-filter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="Creature">Creature</option>
+                        <option value="Instant">Instant</option>
+                        <option value="Sorcery">Sorcery</option>
+                        <option value="Enchantment">Enchantment</option>
+                        <option value="Artifact">Artifact</option>
+                        <option value="Planeswalker">Planeswalker</option>
+                        <option value="Land">Land</option>
+                    </select>
+                    <select id="search-set-filter" class="filter-select">
+                        <option value="">All Sets</option>
+                    </select>
+                    <button class="search-btn" id="search-btn">Search</button>
+                </div>
+                
                 <div class="search-results" id="search-results">
                     <!-- Search results will be populated here -->
                 </div>
-            </div>
+            </section>
 
-            <!-- Prices Tab -->
-            <div class="tab-content" id="prices">
-                <h2>Price Tracking</h2>
-                <div class="price-disclaimer">
-                    <i class="fas fa-exclamation-triangle"></i> Price data is provided for informational purposes only. Actual market values may vary significantly from displayed estimates.
+            <!-- Deck Builder Section -->
+            <section class="section" id="deck-section">
+                <div class="section-header">
+                    <h2>Deck Builder</h2>
                 </div>
-                <div class="price-overview">
-                    <div class="price-chart">
-                        <h3>Collection Value Over Time</h3>
-                        <div class="chart-placeholder">
-                            <p>Price tracking chart will be displayed here</p>
-                        </div>
-                    </div>
-                    <div class="price-alerts">
-                        <h3>Price Alerts</h3>
-                        <div class="alert-list" id="price-alerts">
-                            <!-- Price alerts will be populated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rules Tab -->
-            <div class="tab-content" id="rules">
-                <h2>MTG Rules Reference</h2>
-                <div class="rules-search">
-                    <input type="text" id="rules-search" placeholder="Search rules...">
-                </div>
-                <div class="rules-categories">
-                    <div class="rule-category">
-                        <h3>Basic Rules</h3>
-                        <div class="rule-items">
-                            <div class="rule-item" data-rule="turn-structure">
-                                <h4>Turn Structure</h4>
-                                <p>Each turn consists of five phases: Beginning, Main, Combat, Main, and End.</p>
-                            </div>
-                            <div class="rule-item" data-rule="mana-system">
-                                <h4>Mana System</h4>
-                                <p>Mana is the resource used to cast spells. It comes in five colors plus colorless.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="rule-category">
-                        <h3>Combat Rules</h3>
-                        <div class="rule-items">
-                            <div class="rule-item" data-rule="combat-phases">
-                                <h4>Combat Phases</h4>
-                                <p>Combat consists of: Beginning of Combat, Declare Attackers, Declare Blockers, Combat Damage, End of Combat.</p>
-                            </div>
-                            <div class="rule-item" data-rule="damage-assignment">
-                                <h4>Damage Assignment</h4>
-                                <p>Attacking creatures deal damage equal to their power to defending player or planeswalker.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dictionary Tab -->
-            <div class="tab-content" id="dictionary">
-                <h2>MTG Dictionary</h2>
-                <div class="dictionary-search">
-                    <input type="text" id="dictionary-search" placeholder="Search terms...">
-                </div>
-                <div class="dictionary-content">
-                    <div class="term-categories">
-                        <button class="category-btn active" data-category="all">All</button>
-                        <button class="category-btn" data-category="keywords">Keywords</button>
-                        <button class="category-btn" data-category="mechanics">Mechanics</button>
-                        <button class="category-btn" data-category="formats">Formats</button>
-                    </div>
-                    <div class="terms-list" id="terms-list">
-                        <!-- Dictionary terms will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Deck Builder Tab -->
-            <div class="tab-content" id="deck-builder">
-                <h2><i class="fas fa-hammer"></i> Build Your Deck</h2>
                 
-                <!-- Deck Management -->
-                <div class="deck-management">
-                    <div class="deck-header">
-                        <input type="text" id="deck-name" placeholder="Enter deck name..." class="deck-name-input" />
-                        <div class="deck-actions">
-                            <button class="btn btn-secondary" id="save-deck">
-                                <i class="fas fa-save"></i> Save Deck
-                            </button>
-                            <button class="btn btn-secondary" id="load-deck">
-                                <i class="fas fa-folder-open"></i> Load Deck
-                            </button>
-                            <button class="btn btn-primary" id="export-deck">
-                                <i class="fas fa-download"></i> Export
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Deck Stats -->
-                    <div class="deck-stats">
-                        <div class="stat-card">
-                            <h4>Total Cards</h4>
-                            <span id="deck-total-cards">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Creatures</h4>
-                            <span id="deck-creatures">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Spells</h4>
-                            <span id="deck-spells">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Lands</h4>
-                            <span id="deck-lands">0</span>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Avg. CMC</h4>
-                            <span id="deck-avg-cmc">0.0</span>
-                        </div>
-                    </div>
+                <!-- Swipeable Deck Tabs -->
+                <div class="deck-tabs" id="deckTabs">
+                    <div class="deck-tab active" data-deck-type="aggro">Aggro</div>
+                    <div class="deck-tab" data-deck-type="control">Control</div>
+                    <div class="deck-tab" data-deck-type="combo">Combo</div>
+                    <div class="deck-tab" data-deck-type="midrange">Midrange</div>
+                    <div class="deck-tab" data-deck-type="other">Other</div>
                 </div>
-
-                <!-- Add Cards Section -->
-                <div class="add-cards-section">
-                    <h3>Add Cards to Deck</h3>
-                    <div class="card-search-deck">
-                        <input type="text" id="deck-card-search" placeholder="Search your collection or card database..." />
-                        <button class="btn btn-primary" id="search-cards-for-deck">
-                            <i class="fas fa-search"></i> Search
+                
+                <div class="deck-management">
+                    <input type="text" id="deck-name" placeholder="Enter deck name..." class="deck-name-input" />
+                    <div class="deck-actions">
+                        <button class="btn btn-secondary" id="save-deck">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button class="btn btn-secondary" id="load-deck">
+                            <i class="fas fa-folder-open"></i> Load
+                        </button>
+                        <button class="btn btn-primary" id="export-deck">
+                            <i class="fas fa-download"></i> Export
                         </button>
                     </div>
-                    
-                    <!-- Quick Add from Collection -->
-                    <div class="quick-add-section">
-                        <h4>Quick Add from Collection</h4>
-                        <div class="collection-cards-preview" id="collection-cards-preview">
-                            <!-- Collection cards will be shown here for quick adding -->
-                        </div>
+                </div>
+                
+                <div class="deck-stats">
+                    <div class="stat-mini">
+                        <span class="stat-value" id="deck-total-cards">0</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-value" id="deck-creatures">0</span>
+                        <span class="stat-label">Creatures</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-value" id="deck-spells">0</span>
+                        <span class="stat-label">Spells</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-value" id="deck-lands">0</span>
+                        <span class="stat-label">Lands</span>
                     </div>
                 </div>
-
-                <!-- Current Deck -->
+                
                 <div class="current-deck">
                     <h3>Current Deck</h3>
                     <div class="deck-list" id="deck-list">
                         <div class="empty-deck-message">
                             <i class="fas fa-cards-blank"></i>
                             <p>Your deck is empty</p>
-                            <p>Search for cards above to start building your deck!</p>
+                            <p>Search for cards to start building!</p>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Mana Curve Chart -->
-                <div class="mana-curve-section">
-                    <h3>Mana Curve</h3>
-                    <div class="mana-curve-chart" id="mana-curve-chart">
-                        <div class="curve-bars">
-                            <div class="curve-bar" data-cmc="0">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">0</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="1">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">1</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="2">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">2</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="3">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">3</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="4">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">4</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="5">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">5</span>
-                                <span class="bar-count">0</span>
-                            </div>
-                            <div class="curve-bar" data-cmc="6">
-                                <div class="bar-fill" style="height: 0%"></div>
-                                <span class="bar-label">6+</span>
-                                <span class="bar-count">0</span>
-                            </div>
+            <!-- Settings Section -->
+            <section class="section" id="settings-section">
+                <div class="section-header">
+                    <h2>Settings</h2>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Account</h3>
+                    <div class="user-profile-full">
+                        <div class="avatar-large"></div>
+                        <div class="user-info">
+                            <span class="username" id="current-username">Guest</span>
+                            <span class="role" id="current-role">USER</span>
                         </div>
+                        <button class="btn btn-secondary" id="auth-btn-full">
+                            <span id="auth-btn-text-full">Sign In</span>
+                        </button>
                     </div>
                 </div>
+                
+                <div class="settings-group">
+                    <h3>Data Management</h3>
+                    <div class="settings-actions">
+                        <button class="btn btn-secondary" id="import-collection">
+                            <i class="fas fa-upload"></i> Import Collection
+                        </button>
+                        <button class="btn btn-secondary" id="export-collection">
+                            <i class="fas fa-download"></i> Export Collection
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>App Info</h3>
+                    <div class="app-info">
+                        <p>Deck Forge v1.0</p>
+                        <p>For informational and educational purposes only.</p>
+                        <p>Not affiliated with Wizards of the Coast.</p>
+                        <button class="btn btn-primary install-app" id="pwa-install-btn" style="display: none;">
+                            <i class="fas fa-download"></i> Install App
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-group admin-settings" id="admin-settings" style="display: none;">
+                    <h3>Admin Panel</h3>
+                    <button class="btn btn-primary" id="open-admin-panel">
+                        <i class="fas fa-cog"></i> Open Admin Panel
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ⚙️ Bottom Navigation -->
+    <div class="navbar">
+        <div class="nav-icon active" data-section="collection">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="14" y="3" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="14" y="12" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/>
+                <rect x="3" y="16" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>Collection</span>
+        </div>
+        <div class="nav-icon" data-section="search">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Search</span>
+        </div>
+        <div class="nav-icon" data-section="deck">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>Decks</span>
+        </div>
+        <div class="nav-icon" data-section="settings">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m17.5-3.5L19 12l3.5 3.5M6.5 8.5L5 12l1.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Settings</span>
+        </div>
+    </div>
+
+    <!-- Enhanced Card Preview Modal -->
+    <div class="card-modal" id="cardModal">
+        <div class="modal-header">
+            <span class="card-name" id="modalCardName">Serra Angel</span>
+            <button class="close-btn card-modal-close" id="closeCardModal">✕</button>
+        </div>
+
+        <div class="card-image-wrapper">
+            <img src="" alt="Card Art" id="cardImage" />
+        </div>
+
+        <div class="card-tabs">
+            <button class="tab active" onclick="window.deckForge.showCardTab('stats')">Stats</button>
+            <button class="tab" onclick="window.deckForge.showCardTab('flavor')">Flavor</button>
+            <button class="tab" onclick="window.deckForge.showCardTab('rulings')">Rulings</button>
+        </div>
+
+        <div class="tab-content" id="statsTab">
+            <div id="modalCardDetails">
+                <p><strong>Type:</strong> <span id="cardType">Creature — Angel</span></p>
+                <p><strong>Mana Cost:</strong> <span id="cardManaCost">3WW</span></p>
+                <p><strong>Power/Toughness:</strong> <span id="cardPowerToughness">4/4</span></p>
+                <p><strong>Abilities:</strong> <span id="cardAbilities">Flying, Vigilance</span></p>
+                <p><strong>Set:</strong> <span id="cardSet">Alpha</span></p>
+                <p><strong>Rarity:</strong> <span id="cardRarity">Uncommon</span></p>
             </div>
+        </div>
 
-            <!-- Footer -->
-            <footer>
-                <p>For informational and educational purposes only. Prices are estimates and may not reflect actual market values.</p>
-                <p>© 2025 MTG Collection Tracker · Not affiliated with Wizards of the Coast.</p>
-                <button class="install-app" id="pwa-install-btn" style="display: none;">Install App</button>
-            </footer>
-        </main>
+        <div class="tab-content hidden" id="flavorTab">
+            <p id="cardFlavorText">"Born of light, sworn to justice."</p>
+        </div>
+
+        <div class="tab-content hidden" id="rulingsTab">
+            <div id="cardRulings">
+                <p>Serra Angel does not tap when attacking due to Vigilance.</p>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="add-button" id="addToDeckBtn">Add to Deck</button>
+            <button class="favorite-button" id="addToCollectionBtn">★ Add to Collection</button>
+            <button class="favorite-button" id="favoriteBtn">♥ Favorite</button>
+        </div>
     </div>
 
     <!-- All existing modals preserved -->
@@ -527,24 +470,6 @@
         </div>
     </div>
 
-    <!-- User Menu -->
-    <div class="user-menu" id="user-menu" style="display: none;">
-        <div class="user-info">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="user-details">
-                <span class="username" id="menu-username">Username</span>
-                <span class="user-role" id="menu-role">User</span>
-            </div>
-        </div>
-        <div class="user-actions">
-            <button class="btn btn-small btn-secondary" id="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </div>
-    </div>
-
     <!-- Admin Panel Modal -->
     <div class="modal" id="admin-modal">
         <div class="modal-content admin-modal-content">
@@ -608,6 +533,19 @@
         </div>
     </div>
 
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab-main" onclick="toggleFabMenu()">
+            <i class="fas fa-plus"></i>
+        </button>
+        <div class="fab-actions hidden">
+            <button onclick="openDeckBuilder()" title="New Deck"><i class="fas fa-layer-group"></i></button>
+            <button onclick="startCardScan()" title="Scan Card"><i class="fas fa-camera"></i></button>
+            <button onclick="launchARPreview()" title="AR Preview"><i class="fas fa-cube"></i></button>
+            <button onclick="openProfile()" title="Profile"><i class="fas fa-user"></i></button>
+        </div>
+    </div>
+
     <!-- All JavaScript files preserved -->
     <script src="supabase-config.js"></script>
     <script src="mtg-rules-database.js"></script>
@@ -619,8 +557,12 @@
     <script src="wishlist-and-stats.js"></script>
     <script src="mobile-ui-enhanced.js"></script>
     <script src="mana-symbols.js"></script>
+    <script src="mana-overlay.js"></script>
     <script src="card-scanner.js"></script>
     <script src="deck-builder.js"></script>
+    <script src="deck-qr-integration.js"></script>
+    <script src="swipeable-ui.js"></script>
+    <script src="deckforge.js"></script>
     <script src="script.js"></script>
     <script src="price-tracker.js"></script>
     
@@ -670,7 +612,7 @@
             console.log('PWA was installed');
             hideInstallButton();
             if (window.app && window.app.showNotification) {
-                window.app.showNotification('MTG Tracker installed successfully! 🎉', 'success');
+                window.app.showNotification('Deck Forge installed successfully! 🎉', 'success');
             }
         });
         
@@ -784,6 +726,50 @@
             }
         `;
         document.head.appendChild(pwaStyles);
+
+        // Bottom Navigation Handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const navIcons = document.querySelectorAll('.nav-icon');
+            const sections = document.querySelectorAll('.section');
+            
+            navIcons.forEach(icon => {
+                icon.addEventListener('click', () => {
+                    const targetSection = icon.dataset.section;
+                    
+                    // Remove active class from all nav icons
+                    navIcons.forEach(nav => nav.classList.remove('active'));
+                    // Add active class to clicked nav icon
+                    icon.classList.add('active');
+                    
+                    // Hide all sections
+                    sections.forEach(section => section.classList.remove('active'));
+                    // Show target section
+                    const targetElement = document.getElementById(targetSection + '-section');
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Global function for card modal tab switching (legacy support)
+        function showCardTab(tabName) {
+            if (window.deckForge) {
+                window.deckForge.showCardTab(tabName);
+            }
+        }
+
+        // Global function to open card modal (for external integration)
+        function openCardModal(card) {
+            if (window.deckForge) {
+                window.deckForge.openCardModal(card);
+            }
+        }
+
+        // Global function to close card modal
+        function closeCardModal() {
+            if (window.deckForge) {
+                window.deckForge.closeCardModal();
+            }
+        }
     </script>
-</body>
-</html>
