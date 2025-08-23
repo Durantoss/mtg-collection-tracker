@@ -530,6 +530,9 @@ Examples:
     async performBulkImport(parsedCards, mergeCollection, updatePrices, skipDuplicates) {
         console.log(`Starting bulk import of ${parsedCards.length} cards...`);
         
+        // Track start time for performance metrics
+        const startTime = Date.now();
+        
         // Create progress modal
         const progressModal = this.createProgressModal(parsedCards.length);
         document.body.appendChild(progressModal);
@@ -637,16 +640,18 @@ Examples:
             // Close progress modal
             progressModal.remove();
 
-            // Show completion message
-            let message = `Bulk import completed! Imported ${importedCount} cards`;
-            if (skippedCount > 0) message += `, skipped ${skippedCount} duplicates`;
-            if (errorCount > 0) message += `, ${errorCount} errors`;
+            // Calculate total time
+            const endTime = Date.now();
+            const totalTime = Math.round((endTime - startTime) / 1000);
 
-            this.app.showNotification(message, importedCount > 0 ? 'success' : 'warning');
+            // Show success popup with detailed statistics
+            this.showSuccessPopup(importedCount, skippedCount, errorCount, totalTime);
 
-            // Show error details if any
+            // Show error details popup if any errors occurred
             if (errors.length > 0) {
-                console.warn('Import errors:', errors);
+                setTimeout(() => {
+                    this.showErrorPopup(errors);
+                }, 1000); // Show after success popup
             }
 
         } catch (error) {
@@ -755,15 +760,51 @@ Examples:
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Importing ${totalCards} Cards</h3>
+                    <h3><i class="fas fa-upload animated-pulse"></i> Importing ${totalCards} Cards</h3>
                 </div>
                 <div class="modal-body">
                     <div class="progress-container">
+                        <div class="import-animation">
+                            <div class="card-stack">
+                                <div class="card-icon card-1"><i class="fas fa-id-card"></i></div>
+                                <div class="card-icon card-2"><i class="fas fa-id-card"></i></div>
+                                <div class="card-icon card-3"><i class="fas fa-id-card"></i></div>
+                            </div>
+                            <div class="arrow-flow">
+                                <i class="fas fa-arrow-right"></i>
+                                <i class="fas fa-arrow-right"></i>
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="collection-box">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </div>
                         <div class="progress-bar">
-                            <div class="progress-fill" id="progress-fill"></div>
+                            <div class="progress-fill" id="progress-fill">
+                                <div class="progress-shine"></div>
+                            </div>
+                            <div class="progress-percentage" id="progress-percentage">0%</div>
                         </div>
                         <div class="progress-text" id="progress-text">Preparing import...</div>
                         <div class="progress-stats" id="progress-stats">0 / ${totalCards} cards processed</div>
+                        <div class="progress-details" id="progress-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Imported:</span>
+                                <span class="detail-value" id="imported-count">0</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Skipped:</span>
+                                <span class="detail-value" id="skipped-count">0</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Errors:</span>
+                                <span class="detail-value" id="error-count">0</span>
+                            </div>
+                        </div>
+                        <div class="current-card" id="current-card">
+                            <i class="fas fa-magic"></i>
+                            <span>Ready to import...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -771,10 +812,15 @@ Examples:
         return modal;
     }
 
-    updateProgress(modal, current, total, message) {
+    updateProgress(modal, current, total, message, importedCount = 0, skippedCount = 0, errorCount = 0, currentCardName = '') {
         const progressFill = modal.querySelector('#progress-fill');
         const progressText = modal.querySelector('#progress-text');
         const progressStats = modal.querySelector('#progress-stats');
+        const progressPercentage = modal.querySelector('#progress-percentage');
+        const importedCountEl = modal.querySelector('#imported-count');
+        const skippedCountEl = modal.querySelector('#skipped-count');
+        const errorCountEl = modal.querySelector('#error-count');
+        const currentCardEl = modal.querySelector('#current-card');
         
         const percentage = Math.round((current / total) * 100);
         
@@ -782,13 +828,164 @@ Examples:
             progressFill.style.width = `${percentage}%`;
         }
         
+        if (progressPercentage) {
+            progressPercentage.textContent = `${percentage}%`;
+        }
+        
         if (progressText) {
             progressText.textContent = message;
         }
         
         if (progressStats) {
-            progressStats.textContent = `${current} / ${total} cards processed (${percentage}%)`;
+            progressStats.textContent = `${current} / ${total} cards processed`;
         }
+        
+        if (importedCountEl) {
+            importedCountEl.textContent = importedCount;
+            importedCountEl.className = 'detail-value success';
+        }
+        
+        if (skippedCountEl) {
+            skippedCountEl.textContent = skippedCount;
+            skippedCountEl.className = skippedCount > 0 ? 'detail-value warning' : 'detail-value';
+        }
+        
+        if (errorCountEl) {
+            errorCountEl.textContent = errorCount;
+            errorCountEl.className = errorCount > 0 ? 'detail-value error' : 'detail-value';
+        }
+        
+        if (currentCardEl && currentCardName) {
+            currentCardEl.innerHTML = `
+                <i class="fas fa-magic animated-spin"></i>
+                <span>Processing: ${currentCardName}</span>
+            `;
+        }
+    }
+
+    showErrorPopup(errors) {
+        if (errors.length === 0) return;
+        
+        const errorModal = document.createElement('div');
+        errorModal.className = 'modal active error-modal';
+        errorModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header error-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Import Errors (${errors.length})</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="error-summary">
+                        <p>The following cards could not be imported:</p>
+                    </div>
+                    <div class="error-list">
+                        ${errors.slice(0, 20).map(error => `
+                            <div class="error-item">
+                                <div class="error-card-name">
+                                    <i class="fas fa-times-circle"></i>
+                                    <strong>${error.card}</strong>
+                                </div>
+                                <div class="error-message">${error.error}</div>
+                            </div>
+                        `).join('')}
+                        ${errors.length > 20 ? `
+                            <div class="error-item more-errors">
+                                <div class="error-message">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                    And ${errors.length - 20} more errors...
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="error-actions">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                            <i class="fas fa-check"></i> OK
+                        </button>
+                        <button class="btn btn-primary" onclick="navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(errors)}, null, 2)); this.app.showNotification('Error details copied to clipboard', 'info')">
+                            <i class="fas fa-copy"></i> Copy Error Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(errorModal);
+        
+        // Auto-remove after 30 seconds
+        setTimeout(() => {
+            if (errorModal.parentNode) {
+                errorModal.remove();
+            }
+        }, 30000);
+    }
+
+    showSuccessPopup(importedCount, skippedCount, errorCount, totalTime) {
+        const successModal = document.createElement('div');
+        successModal.className = 'modal active success-modal';
+        successModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header success-header">
+                    <h3><i class="fas fa-check-circle"></i> Import Complete!</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="success-animation">
+                        <div class="checkmark-circle">
+                            <div class="checkmark"></div>
+                        </div>
+                    </div>
+                    <div class="import-summary">
+                        <div class="summary-stats">
+                            <div class="stat-item success">
+                                <div class="stat-number">${importedCount}</div>
+                                <div class="stat-label">Cards Imported</div>
+                            </div>
+                            ${skippedCount > 0 ? `
+                                <div class="stat-item warning">
+                                    <div class="stat-number">${skippedCount}</div>
+                                    <div class="stat-label">Duplicates Skipped</div>
+                                </div>
+                            ` : ''}
+                            ${errorCount > 0 ? `
+                                <div class="stat-item error">
+                                    <div class="stat-number">${errorCount}</div>
+                                    <div class="stat-label">Errors</div>
+                                </div>
+                            ` : ''}
+                            <div class="stat-item info">
+                                <div class="stat-number">${totalTime}s</div>
+                                <div class="stat-label">Total Time</div>
+                            </div>
+                        </div>
+                        <div class="success-message">
+                            <p>Your collection has been successfully updated!</p>
+                            ${importedCount > 0 ? '<p>New cards are now available in your collection.</p>' : ''}
+                        </div>
+                    </div>
+                    <div class="success-actions">
+                        <button class="btn btn-primary" onclick="this.closest('.modal').remove(); window.app.switchTab('collection')">
+                            <i class="fas fa-eye"></i> View Collection
+                        </button>
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                            <i class="fas fa-check"></i> Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(successModal);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (successModal.parentNode) {
+                successModal.remove();
+            }
+        }, 10000);
     }
 
     async performExport() {
