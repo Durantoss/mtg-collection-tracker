@@ -14,6 +14,9 @@ class MobileUIEnhanced {
         this.swipeThreshold = 50;
         this.currentTab = 'collection';
         
+        // Pull-to-refresh preference (can be disabled by user)
+        this.pullToRefreshEnabled = localStorage.getItem('pullToRefreshEnabled') !== 'false';
+        
         this.init();
     }
 
@@ -261,34 +264,75 @@ class MobileUIEnhanced {
         const mainContent = document.querySelector('.main-content');
         const indicator = document.getElementById('mobile-pull-refresh');
         
-        if (!mainContent || !indicator) return;
+        if (!mainContent || !indicator || !this.pullToRefreshEnabled) return;
 
         let startY = 0;
         let currentY = 0;
+        let startX = 0;
+        let currentX = 0;
         let isPulling = false;
         let isRefreshing = false;
+        let touchStartTime = 0;
+        let hasMovedHorizontally = false;
+        
+        // Minimum distance before we start intercepting (prevents accidental triggers)
+        const minPullDistance = 30;
+        // Maximum horizontal movement allowed for pull-to-refresh
+        const maxHorizontalMovement = 50;
 
         mainContent.addEventListener('touchstart', (e) => {
+            // Only start tracking if we're at the very top of the page
             if (mainContent.scrollTop === 0) {
                 startY = e.touches[0].clientY;
-                isPulling = true;
+                startX = e.touches[0].clientX;
+                touchStartTime = Date.now();
+                isPulling = false; // Don't set to true immediately
+                hasMovedHorizontally = false;
             }
         }, { passive: true });
 
         mainContent.addEventListener('touchmove', (e) => {
-            if (!isPulling || isRefreshing) return;
+            // Don't interfere if we're already refreshing
+            if (isRefreshing) return;
+            
+            // Only proceed if we started at the top
+            if (mainContent.scrollTop > 0 || startY === 0) return;
             
             currentY = e.touches[0].clientY;
+            currentX = e.touches[0].clientX;
             const pullDistance = currentY - startY;
+            const horizontalDistance = Math.abs(currentX - startX);
             
-            if (pullDistance > 0 && mainContent.scrollTop === 0) {
+            // Check if this is a horizontal swipe (should not trigger pull-to-refresh)
+            if (horizontalDistance > maxHorizontalMovement) {
+                hasMovedHorizontally = true;
+                return;
+            }
+            
+            // Only start pull-to-refresh logic if:
+            // 1. We're pulling down (positive distance)
+            // 2. We've moved at least the minimum distance
+            // 3. We haven't moved too much horizontally
+            // 4. We're still at the top of the page
+            if (pullDistance > minPullDistance && 
+                !hasMovedHorizontally && 
+                mainContent.scrollTop === 0) {
+                
+                // Now we can start intercepting
+                if (!isPulling) {
+                    isPulling = true;
+                }
+                
                 e.preventDefault();
                 
-                const progress = Math.min(pullDistance / this.pullToRefreshThreshold, 1);
-                indicator.style.transform = `translateX(-50%) translateY(${pullDistance * 0.5}px) rotate(${progress * 360}deg)`;
+                // Adjust pullDistance to account for the minimum threshold
+                const adjustedPullDistance = pullDistance - minPullDistance;
+                const progress = Math.min(adjustedPullDistance / this.pullToRefreshThreshold, 1);
+                
+                indicator.style.transform = `translateX(-50%) translateY(${adjustedPullDistance * 0.5}px) rotate(${progress * 360}deg)`;
                 indicator.style.opacity = progress;
                 
-                if (pullDistance > this.pullToRefreshThreshold) {
+                if (adjustedPullDistance > this.pullToRefreshThreshold) {
                     indicator.classList.add('visible');
                 } else {
                     indicator.classList.remove('visible');
@@ -297,17 +341,29 @@ class MobileUIEnhanced {
         }, { passive: false });
 
         mainContent.addEventListener('touchend', (e) => {
-            if (!isPulling || isRefreshing) return;
+            if (!isPulling || isRefreshing || hasMovedHorizontally) {
+                // Reset state
+                isPulling = false;
+                hasMovedHorizontally = false;
+                startY = 0;
+                return;
+            }
             
             const pullDistance = currentY - startY;
+            const touchDuration = Date.now() - touchStartTime;
             
-            if (pullDistance > this.pullToRefreshThreshold) {
+            // Only trigger refresh if we've pulled far enough and it wasn't too quick
+            // (prevents accidental triggers from fast scrolling)
+            if (pullDistance > (this.pullToRefreshThreshold + minPullDistance) && touchDuration > 200) {
                 this.triggerRefresh();
             } else {
                 this.resetPullToRefresh();
             }
             
+            // Reset state
             isPulling = false;
+            hasMovedHorizontally = false;
+            startY = 0;
         }, { passive: true });
     }
 
@@ -781,6 +837,94 @@ class MobileUIEnhanced {
         const skeletons = container.querySelectorAll('.mobile-skeleton');
         skeletons.forEach(skeleton => skeleton.remove());
     }
+
+    // Mobile Settings Modal
+    showMobileSettings() {
+        const settingsModal = document.createElement('div');
+        settingsModal.className = 'mobile-more-menu mobile-settings-modal';
+        settingsModal.innerHTML = `
+            <div class="mobile-more-overlay"></div>
+            <div class="mobile-more-content">
+                <div class="mobile-more-header">
+                    <h3>Mobile Settings</h3>
+                    <button class="mobile-more-close">&times;</button>
+                </div>
+                <div class="mobile-settings-items">
+                    <div class="mobile-setting-item">
+                        <div class="mobile-setting-info">
+                            <h4>Pull to Refresh</h4>
+                            <p>Enable pull-down gesture to refresh content</p>
+                        </div>
+                        <label class="mobile-toggle">
+                            <input type="checkbox" id="pull-refresh-toggle" ${this.pullToRefreshEnabled ? 'checked' : ''}>
+                            <span class="mobile-toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="mobile-setting-item">
+                        <div class="mobile-setting-info">
+                            <h4>Haptic Feedback</h4>
+                            <p>Vibrate on button presses and interactions</p>
+                        </div>
+                        <label class="mobile-toggle">
+                            <input type="checkbox" id="haptic-toggle" ${navigator.vibrate ? 'checked' : ''}>
+                            <span class="mobile-toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="mobile-setting-item">
+                        <div class="mobile-setting-info">
+                            <h4>About</h4>
+                            <p>MTG Collection Tracker v1.0 - Mobile Enhanced</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(settingsModal);
+
+        // Add event listeners
+        settingsModal.querySelector('.mobile-more-close').addEventListener('click', () => {
+            settingsModal.remove();
+        });
+
+        settingsModal.querySelector('.mobile-more-overlay').addEventListener('click', () => {
+            settingsModal.remove();
+        });
+
+        // Pull to refresh toggle
+        const pullRefreshToggle = settingsModal.querySelector('#pull-refresh-toggle');
+        pullRefreshToggle.addEventListener('change', (e) => {
+            this.pullToRefreshEnabled = e.target.checked;
+            localStorage.setItem('pullToRefreshEnabled', this.pullToRefreshEnabled.toString());
+            
+            // Re-setup pull to refresh with new setting
+            this.setupPullToRefresh();
+            
+            this.showMobileToast(
+                this.pullToRefreshEnabled ? 'Pull to refresh enabled' : 'Pull to refresh disabled',
+                'success'
+            );
+        });
+
+        // Haptic feedback toggle
+        const hapticToggle = settingsModal.querySelector('#haptic-toggle');
+        if (!navigator.vibrate) {
+            hapticToggle.disabled = true;
+            hapticToggle.parentElement.style.opacity = '0.5';
+        }
+
+        // Animate in
+        setTimeout(() => {
+            settingsModal.classList.add('show');
+        }, 10);
+    }
+
+    // Method to toggle pull-to-refresh programmatically
+    togglePullToRefresh(enabled) {
+        this.pullToRefreshEnabled = enabled;
+        localStorage.setItem('pullToRefreshEnabled', enabled.toString());
+        this.setupPullToRefresh();
+    }
 }
 
 // Enhanced mobile styles for the more menu and additional components
@@ -914,6 +1058,94 @@ mobileUIStyles.textContent = `
         .mobile-more-item i {
             font-size: 1.3rem;
         }
+    }
+
+    /* Mobile Settings Modal Styles */
+    .mobile-settings-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .mobile-setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: rgba(102, 187, 106, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 187, 106, 0.1);
+    }
+
+    .mobile-setting-info {
+        flex: 1;
+    }
+
+    .mobile-setting-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--mobile-text, #2C3E50);
+    }
+
+    .mobile-setting-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--mobile-text-secondary, #7F8C8D);
+        line-height: 1.3;
+    }
+
+    /* Toggle Switch Styles */
+    .mobile-toggle {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+        margin-left: 1rem;
+    }
+
+    .mobile-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .mobile-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 28px;
+    }
+
+    .mobile-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .mobile-toggle input:checked + .mobile-toggle-slider {
+        background-color: var(--mobile-primary, #66BB6A);
+    }
+
+    .mobile-toggle input:checked + .mobile-toggle-slider:before {
+        transform: translateX(22px);
+    }
+
+    .mobile-toggle input:disabled + .mobile-toggle-slider {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 `;
 
