@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced MTG Card Component Demo</title>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts - Cinzel for magical theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Enhanced MTG Card Styles -->
+    <link rel="stylesheet" href="enhanced-mtg-card.css">
+    
+    <style>
+        /* Demo page styles */
+        body {
+            font-family: 'Cinzel', serif;
+            background: radial-gradient(circle at center, #1e1e2f, #0c0c1c);
+            color: #f0e6d2;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .demo-title {
+            font-size: 2.5rem;
+            color: gold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .demo-subtitle {
+            font-size: 1.2rem;
+            color: rgba(240, 230, 210, 0.8);
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: gold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-controls {
+            background: rgba(42, 26, 77, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .controls-title {
+            font-size: 1.2rem;
+            color: gold;
+            margin-bottom: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .demo-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3c2a6e, #2a1a4d);
+            color: gold;
+            border: 2px solid gold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-btn:hover {
+            background: linear-gradient(135deg, #4d3580, #3c2a6e);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(60, 42, 110, 0.4);
+        }
+        
+        .demo-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f0e6d2;
+        }
+        
+        .demo-checkbox input {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .feature-list {
+            background: rgba(30, 30, 47, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid gold;
+        }
+        
+        .feature-list h4 {
+            color: gold;
+            margin-bottom: 15px;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 5px 0;
+            color: rgba(240, 230, 210, 0.9);
+        }
+        
+        .feature-list li::before {
+            content: '✨';
+            margin-right: 10px;
+        }
+        
+        .integration-code {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .integration-code pre {
+            margin: 0;
+            color: #f0e6d2;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #4ade80;
+        }
+        
+        .notification.info {
+            background: #3b82f6;
+        }
+        
+        .notification.warning {
+            background: #f59e0b;
+        }
+        
+        .notification.error {
+            background: #ef4444;
+        }
+        
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .demo-btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">Enhanced MTG Card Component</h1>
+            <p class="demo-subtitle">Interactive, feature-rich card display with advanced functionality</p>
+        </div>
+        
+        <div class="demo-controls">
+            <h3 class="controls-title">Demo Controls</h3>
+            <div class="control-group">
+                <button class="demo-btn" onclick="addRandomCard()">Add Random Card</button>
+                <button class="demo-btn" onclick="toggleAllFoil()">Toggle All Foil</button>
+                <button class="demo-btn" onclick="updateAllPrices()">Update Prices</button>
+                <button class="demo-btn" onclick="clearAllCards()">Clear All</button>
+            </div>
+            <div class="control-group">
+                <label class="demo-checkbox">
+                    <input type="checkbox" id="enableQuantityControls" checked>
+                    Quantity Controls
+                </label>
+                <label class="demo-checkbox">
+                    <input type="checkbox" id="enablePriceTracking" checked>
+                    Price Tracking
+                </label>
+                <label class="demo-checkbox">
+                    <input type="checkbox" id="enableDeckBuilder" checked>
+                    Deck Builder
+                </label>
+                <label class="demo-checkbox">
+                    <input type="checkbox" id="enableSwipeActions" checked>
+                    Swipe Actions (Mobile)
+                </label>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="section-title">Sample Cards</h2>
+            <div class="cards-grid" id="cards-container">
+                <!-- Cards will be dynamically added here -->
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="section-title">Features</h2>
+            <div class="feature-list">
+                <h4>Visual Enhancements</h4>
+                <ul>
+                    <li>Rarity-based color coding and effects</li>
+                    <li>Animated foil shimmer for premium cards</li>
+                    <li>Mana symbol display with proper colors</li>
+                    <li>Hover effects with 3D transforms</li>
+                    <li>Condition indicators with color coding</li>
+                    <li>Magical gradient backgrounds</li>
+                </ul>
+            </div>
+            
+            <div class="feature-list">
+                <h4>Interactive Features</h4>
+                <ul>
+                    <li>Quantity controls with +/- buttons</li>
+                    <li>Multiple price source tracking</li>
+                    <li>Swipe gestures on mobile devices</li>
+                    <li>Keyboard shortcuts for power users</li>
+                    <li>Card preview on image click</li>
+                    <li>Context-sensitive actions</li>
+                </ul>
+            </div>
+            
+            <div class="feature-list">
+                <h4>Integration Features</h4>
+                <ul>
+                    <li>Event-driven architecture</li>
+                    <li>Accessibility support (ARIA labels, keyboard nav)</li>
+                    <li>Mobile-first responsive design</li>
+                    <li>Integration with existing MTG tracker</li>
+                    <li>Customizable options and theming</li>
+                    <li>Performance optimized animations</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="section-title">Integration Example</h2>
+            <div class="integration-code">
+                <pre><code>// Basic usage
+const cardData = {
+    id: 1,
+    name: "Lightning Bolt",
+    manaCost: "{R}",
+    type: "Instant",
+    set: "Alpha",
+    setCode: "LEA",
+    rarity: "common",
+    condition: "NM",
+    quantity: 4,
+    isFoil: false,
+    imageUrl: "https://example.com/card.jpg",
+    prices: {
+        scryfall: { price: 2.50, lastUpdated: "2024-01-01" },
+        tcgplayer: { price: 2.75, lastUpdated: "2024-01-01" }
+    },
+    notes: "Great condition, tournament legal"
+};
+
+// Create card component
+const cardComponent = new MTGCardComponent(cardData, {
+    enableQuantityControls: true,
+    enablePriceTracking: true,
+    enableDeckBuilder: true,
+    enableSwipeActions: true
+});
+
+// Add to DOM
+document.getElementById('collection').appendChild(cardComponent.getElement());
+
+// Listen for events
+cardComponent.getElement().addEventListener('mtg-card-update', (event) => {
+    const { type, cardData } = event.detail;
+    
+    switch (type) {
+        case 'quantity-changed':
+            updateCollectionStats();
+            break;
+        case 'add-to-deck':
+            addCardToDeck(cardData);
+            break;
+        case 'remove-card':
+            removeFromCollection(cardData.id);
+            break;
+    }
+});</code></pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load the component JavaScript -->
+    <script src="mtg-card-component.js"></script>
+    
+    <script>
+        // Demo data
+        const sampleCards = [
+            {
+                id: 1,
+                name: "Lightning Bolt",
+                manaCost: "{R}",
+                type: "Instant",
+                set: "Alpha",
+                setCode: "LEA",
+                rarity: "common",
+                condition: "NM",
+                quantity: 4,
+                isFoil: false,
+                imageUrl: "https://cards.scryfall.io/normal/front/c/e/ce711943-c1a1-43a0-8b89-8d169cfb8e06.jpg",
+                prices: {
+                    scryfall: { price: 2.50, lastUpdated: "2024-01-01T00:00:00Z" },
+                    tcgplayer: { price: 2.75, lastUpdated: "2024-01-01T00:00:00Z" },
+                    cardkingdom: { price: 3.00, lastUpdated: "2024-01-01T00:00:00Z" }
+                },
+                notes: "Classic red instant spell"
+            },
+            {
+                id: 2,
+                name: "Black Lotus",
+                manaCost: "{0}",
+                type: "Artifact",
+                set: "Alpha",
+                setCode: "LEA",
+                rarity: "mythic",
+                condition: "LP",
+                quantity: 1,
+                isFoil: false,
+                imageUrl: "https://cards.scryfall.io/normal/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg",
+                prices: {
+                    scryfall: { price: 25000.00, lastUpdated: "2024-01-01T00:00:00Z" },
+                    tcgplayer: { price: 27500.00, lastUpdated: "2024-01-01T00:00:00Z" }
+                },
+                notes: "The most powerful mana source ever printed"
+            },
+            {
+                id: 3,
+                name: "Serra Angel",
+                manaCost: "{3}{W}{W}",
+                type: "Creature — Angel",
+                set: "Core Set 2021",
+                setCode: "M21",
+                rarity: "uncommon",
+                condition: "NM",
+                quantity: 2,
+                isFoil: true,
+                imageUrl: "https://cards.scryfall.io/normal/front/9/0/9067f035-3437-4c5c-bae9-d3c9001a3411.jpg",
+                prices: {
+                    scryfall: { price: 0.25, lastUpdated: "2024-01-01T00:00:00Z" },
+                    tcgplayer: { price: 0.30, lastUpdated: "2024-01-01T00:00:00Z" },
+                    cardkingdom: { price: 0.35, lastUpdated: "2024-01-01T00:00:00Z" },
+                    edhrec: { price: 0.28, lastUpdated: "2024-01-01T00:00:00Z" }
+                },
+                notes: "Beautiful foil version"
+            },
+            {
+                id: 4,
+                name: "Tarmogoyf",
+                manaCost: "{1}{G}",
+                type: "Creature — Lhurgoyf",
+                set: "Modern Masters 2017",
+                setCode: "MM3",
+                rarity: "rare",
+                condition: "MP",
+                quantity: 1,
+                isFoil: false,
+                imageUrl: "https://cards.scryfall.io/normal/front/6/9/69daba76-96e8-4bcc-ab79-2f00189ad8fb.jpg",
+                prices: {
+                    scryfall: { price: 45.00, lastUpdated: "2024-01-01T00:00:00Z" },
+                    tcgplayer: { price: 47.50, lastUpdated: "2024-01-01T00:00:00Z" }
+                },
+                notes: "Modern staple creature"
+            }
+        ];
+        
+        let cardComponents = [];
+        
+        // Initialize demo
+        function initDemo() {
+            const container = document.getElementById('cards-container');
+            
+            sampleCards.forEach(cardData => {
+                const component = createCardComponent(cardData);
+                container.appendChild(component.getElement());
+                cardComponents.push(component);
+            });
+            
+            // Setup event listeners for options
+            setupOptionListeners();
+        }
+        
+        function createCardComponent(cardData) {
+            const options = getOptionsFromControls();
+            const component = new MTGCardComponent(cardData, options);
+            
+            // Listen for card events
+            component.getElement().addEventListener('mtg-card-update', handleCardEvent);
+            
+            return component;
+        }
+        
+        function getOptionsFromControls() {
+            return {
+                enableQuantityControls: document.getElementById('enableQuantityControls').checked,
+                enablePriceTracking: document.getElementById('enablePriceTracking').checked,
+                enableDeckBuilder: document.getElementById('enableDeckBuilder').checked,
+                enableSwipeActions: document.getElementById('enableSwipeActions').checked,
+                enableCardPreview: true,
+                enableKeyboardShortcuts: true
+            };
+        }
+        
+        function setupOptionListeners() {
+            const checkboxes = document.querySelectorAll('.demo-checkbox input');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', refreshAllCards);
+            });
+        }
+        
+        function refreshAllCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            cardComponents.forEach(component => {
+                const cardData = component.getCardData();
+                const newComponent = createCardComponent(cardData);
+                container.appendChild(newComponent.getElement());
+            });
+        }
+        
+        function handleCardEvent(event) {
+            const { type, cardData, message } = event.detail;
+            
+            switch (type) {
+                case 'quantity-changed':
+                    showNotification(`Updated quantity for ${cardData.name}`, 'success');
+                    break;
+                case 'add-to-deck':
+                    showNotification(`Added ${cardData.name} to deck!`, 'success');
+                    break;
+                case 'edit-card':
+                    showNotification(`Edit ${cardData.name}`, 'info');
+                    break;
+                case 'remove-card':
+                    showNotification(`Removed ${cardData.name}`, 'warning');
+                    removeCardComponent(cardData.id);
+                    break;
+                case 'show-card-preview':
+                    showCardPreview(cardData);
+                    break;
+                case 'show-notification':
+                    showNotification(message, 'info');
+                    break;
+            }
+        }
+        
+        function removeCardComponent(cardId) {
+            cardComponents = cardComponents.filter(component => {
+                const data = component.getCardData();
+                if (data.id === cardId) {
+                    component.destroy();
+                    return false;
+                }
+                return true;
+            });
+        }
+        
+        function addRandomCard() {
+            const randomCards = [
+                {
+                    id: Date.now(),
+                    name: "Counterspell",
+                    manaCost: "{U}{U}",
+                    type: "Instant",
+                    set: "Ice Age",
+                    setCode: "ICE",
+                    rarity: "common",
+                    condition: "NM",
+                    quantity: 1,
+                    isFoil: Math.random() > 0.7,
+                    imageUrl: "https://cards.scryfall.io/normal/front/c/c/cca8eb95-d071-46a4-885c-3da25b401806.jpg",
+                    prices: {
+                        scryfall: { price: 1.25, lastUpdated: new Date().toISOString() }
+                    },
+                    notes: "Added via demo"
+                },
+                {
+                    id: Date.now() + 1,
+                    name: "Sol Ring",
+                    manaCost: "{1}",
+                    type: "Artifact",
+                    set: "Commander 2021",
+                    setCode: "C21",
+                    rarity: "uncommon",
+                    condition: "NM",
+                    quantity: 1,
+                    isFoil: Math.random() > 0.5,
+                    imageUrl: "https://cards.scryfall.io/normal/front/4/c/4cbc6901-6a4a-4d0a-83ea-7eefa3b35021.jpg",
+                    prices: {
+                        scryfall: { price: 1.50, lastUpdated: new Date().toISOString() }
+                    },
+                    notes: "Commander staple"
+                }
+            ];
+            
+            const randomCard = randomCards[Math.floor(Math.random() * randomCards.length)];
+            const component = createCardComponent(randomCard);
+            
+            document.getElementById('cards-container').appendChild(component.getElement());
+            cardComponents.push(component);
+            
+            showNotification(`Added ${randomCard.name}!`, 'success');
+        }
+        
+        function toggleAllFoil() {
+            cardComponents.forEach(component => {
+                const cardData = component.getCardData();
+                cardData.isFoil = !cardData.isFoil;
+                component.updateCardData(cardData);
+            });
+            showNotification('Toggled foil status for all cards!', 'info');
+        }
+        
+        function updateAllPrices() {
+            cardComponents.forEach(component => {
+                const cardData = component.getCardData();
+                if (cardData.prices) {
+                    Object.keys(cardData.prices).forEach(source => {
+                        cardData.prices[source].price *= (0.9 + Math.random() * 0.2); // ±10% variation
+                        cardData.prices[source].lastUpdated = new Date().toISOString();
+                    });
+                    component.updateCardData(cardData);
+                }
+            });
+            showNotification('Updated all card prices!', 'success');
+        }
+        
+        function clearAllCards() {
+            cardComponents.forEach(component => component.destroy());
+            cardComponents = [];
+            document.getElementById('cards-container').innerHTML = '';
+            showNotification('Cleared all cards!', 'warning');
+        }
+        
+        function showCardPreview(cardData) {
+            // Simple modal preview (in real app, this would be more sophisticated)
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = cardData.imageUrl;
+            img.style.cssText = `
+                max-width: 90vw;
+                max-height: 90vh;
+                border-radius: 15px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            `;
+            
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Auto-remove
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', initDemo);
+        
+        // Keyboard shortcuts for demo
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'n':
+                        event.preventDefault();
+                        addRandomCard();
+                        break;
+                    case 'f':
+                        event.preventDefault();
+                        toggleAllFoil();
+                        break;
+                    case 'u':
+                        event.preventDefault();
+                        updateAllPrices();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
