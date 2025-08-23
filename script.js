@@ -283,6 +283,17 @@ class MTGCollectionTracker {
     }
 
     setupAuthEventListeners() {
+        // Auth buttons - both mini and full versions
+        const authBtnMini = document.getElementById('auth-btn-mini');
+        if (authBtnMini) {
+            authBtnMini.addEventListener('click', () => this.handleAuthButtonClick());
+        }
+        
+        const authBtnFull = document.getElementById('auth-btn-full');
+        if (authBtnFull) {
+            authBtnFull.addEventListener('click', () => this.handleAuthButtonClick());
+        }
+        
         // Login form
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
@@ -323,10 +334,10 @@ class MTGCollectionTracker {
             closeRegisterBtn.addEventListener('click', () => this.closeRegisterModal());
         }
         
-        // Logout button
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
+        // Admin panel button
+        const openAdminBtn = document.getElementById('open-admin-panel');
+        if (openAdminBtn) {
+            openAdminBtn.addEventListener('click', () => this.openAdminPanel());
         }
         
         
@@ -492,24 +503,44 @@ class MTGCollectionTracker {
     }
 
     updateAuthButton() {
-        const authBtn = document.getElementById('auth-btn');
-        const authBtnText = document.getElementById('auth-btn-text');
-        const authBtnIcon = authBtn.querySelector('i');
-        
-        if (!authBtn || !authBtnText || !authBtnIcon) return;
+        // Update both mini and full auth buttons
+        const authBtnMini = document.getElementById('auth-btn-mini');
+        const authBtnTextMini = document.getElementById('auth-btn-text-mini');
+        const authBtnFull = document.getElementById('auth-btn-full');
+        const authBtnTextFull = document.getElementById('auth-btn-text-full');
         
         if (this.isAuthenticated) {
             // User is authenticated - show logout state
-            authBtn.classList.add('authenticated');
-            authBtnIcon.className = 'fas fa-sign-out-alt';
-            authBtnText.textContent = 'Sign Out';
-            authBtn.title = 'Sign out of your account';
+            if (authBtnMini) {
+                authBtnMini.classList.add('authenticated');
+                authBtnMini.title = 'Sign out of your account';
+            }
+            if (authBtnTextMini) {
+                authBtnTextMini.textContent = 'Sign Out';
+            }
+            if (authBtnFull) {
+                authBtnFull.classList.add('authenticated');
+                authBtnFull.title = 'Sign out of your account';
+            }
+            if (authBtnTextFull) {
+                authBtnTextFull.textContent = 'Sign Out';
+            }
         } else {
             // User is not authenticated - show login state
-            authBtn.classList.remove('authenticated');
-            authBtnIcon.className = 'fas fa-user';
-            authBtnText.textContent = 'Sign In';
-            authBtn.title = 'Sign in to your account';
+            if (authBtnMini) {
+                authBtnMini.classList.remove('authenticated');
+                authBtnMini.title = 'Sign in to your account';
+            }
+            if (authBtnTextMini) {
+                authBtnTextMini.textContent = 'Sign In';
+            }
+            if (authBtnFull) {
+                authBtnFull.classList.remove('authenticated');
+                authBtnFull.title = 'Sign in to your account';
+            }
+            if (authBtnTextFull) {
+                authBtnTextFull.textContent = 'Sign In';
+            }
         }
     }
 

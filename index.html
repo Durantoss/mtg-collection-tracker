@@ -29,6 +29,14 @@
     
     <!-- Stylesheets - Crimson Arcana Theme -->
     <link rel="stylesheet" href="theme-crimson-arcana.css">
+    <link rel="stylesheet" href="enhanced-mtg-card.css">
+    <link rel="stylesheet" href="enhanced-deck-builder.css">
+    <link rel="stylesheet" href="mobile-ui-enhanced.css">
+    <link rel="stylesheet" href="synergy-meter.css">
+    <link rel="stylesheet" href="mobile-fixes.css">
+    <link rel="stylesheet" href="mobile-phone-optimized.css">
+    <link rel="stylesheet" href="import-progress-styles.css">
+    <link rel="stylesheet" href="rules-dictionary-styles.css">
     <link rel="stylesheet" href="ar-preview.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -64,6 +72,21 @@
             <section class="section active" id="collection-section">
                 <!-- 🔍 Search Bar -->
                 <input type="text" class="search-bar" id="collection-search" placeholder="Search cards..." />
+
+                <!-- Collection Filters -->
+                <div class="collection-filters">
+                    <select id="condition-filter" class="filter-select">
+                        <option value="">All Conditions</option>
+                        <option value="Near Mint">Near Mint</option>
+                        <option value="Lightly Played">Lightly Played</option>
+                        <option value="Moderately Played">Moderately Played</option>
+                        <option value="Heavily Played">Heavily Played</option>
+                        <option value="Damaged">Damaged</option>
+                    </select>
+                    <select id="set-filter" class="filter-select">
+                        <option value="">All Sets</option>
+                    </select>
+                </div>
 
                 <!-- 🧩 Filter Chips -->
                 <div class="filters" id="filter-chips">
@@ -104,14 +127,19 @@
                     </div>
                 </div>
 
-                <!-- 📷 Scan Button -->
-                <button class="scan-button" id="scan-card-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M23 19C23 20.1046 22.1046 21 21 21H3C1.89543 21 1 20.1046 1 19V8C1 6.89543 1.89543 6 3 6H7L9 4H15L17 6H21C22.1046 6 23 6.89543 23 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    Scan Card
-                </button>
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="add-card-btn">
+                        <i class="fas fa-plus"></i> Add Card
+                    </button>
+                    <button class="scan-button" id="scan-card-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23 19C23 20.1046 22.1046 21 21 21H3C1.89543 21 1 20.1046 1 19V8C1 6.89543 1.89543 6 3 6H7L9 4H15L17 6H21C22.1046 6 23 6.89543 23 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Scan Card
+                    </button>
+                </div>
             </section>
 
             <!-- Search Section -->
@@ -544,17 +572,20 @@
         </div>
     </div>
 
-    <!-- All JavaScript files preserved -->
+    <!-- JavaScript files in correct dependency order -->
     <script src="supabase-config.js"></script>
     <script src="mtg-rules-database.js"></script>
     <script src="mtg-dictionary.js"></script>
+    <script src="mana-symbols.js"></script>
+    <script src="price-tracker.js"></script>
+    <script src="enhanced-price-tracker.js"></script>
+    <script src="synergy-engine.js"></script>
+    <script src="synergy-meter-components.js"></script>
     <script src="collection-import-export.js"></script>
     <script src="url-import.js"></script>
-    <script src="enhanced-price-tracker.js"></script>
     <script src="advanced-search-filters.js"></script>
     <script src="wishlist-and-stats.js"></script>
     <script src="mobile-ui-enhanced.js"></script>
-    <script src="mana-symbols.js"></script>
     <script src="mana-overlay.js"></script>
     <script src="card-scanner.js"></script>
     <script src="deck-builder.js"></script>
@@ -566,7 +597,6 @@
     <script src="ar-gestures.js"></script>
     <script src="ar-preview.js"></script>
     <script src="script.js"></script>
-    <script src="price-tracker.js"></script>
     
     <!-- PWA Service Worker Registration -->
     <script>
