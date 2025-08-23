@@ -4,6 +4,7 @@ class CollectionImportExport {
     constructor(app) {
         this.app = app;
         this.supportedFormats = ['json', 'csv', 'deckbox', 'mtgo'];
+        this.storedFileContent = null;
         this.init();
     }
 
@@ -280,6 +281,7 @@ Examples:
         const reader = new FileReader();
         reader.onload = (e) => {
             const content = e.target.result;
+            this.storedFileContent = content; // Store for later use
             this.previewImport(content);
             
             // Update UI
@@ -382,13 +384,21 @@ Examples:
 
     parseCSV(csvData) {
         const lines = csvData.split('\n').filter(line => line.trim());
-        const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+        const headers = lines[0].split('\t').map(h => h.trim()); // Use tab delimiter for your format
+        
+        // Check if this is the specific collection format with known headers
+        if (headers.includes('Product Name') && headers.includes('Category') && headers.includes('Quantity')) {
+            return this.parseCollectionCSV(lines, headers);
+        }
+        
+        // Fallback to generic CSV parsing
+        const csvHeaders = headers.length === 1 ? lines[0].toLowerCase().split(',').map(h => h.trim()) : headers.map(h => h.toLowerCase());
         
         return lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            const values = csvHeaders.length === 1 ? line.split(',').map(v => v.trim().replace(/^"|"$/g, '')) : line.split('\t').map(v => v.trim());
             const card = {};
             
-            headers.forEach((header, index) => {
+            csvHeaders.forEach((header, index) => {
                 const value = values[index] || '';
                 
                 // Map common CSV headers to our format
@@ -411,6 +421,49 @@ Examples:
             
             return card;
         }).filter(card => card.name);
+    }
+
+    parseCollectionCSV(lines, headers) {
+        console.log('Parsing specialized collection CSV format...');
+        
+        // Map header indices for your specific format
+        const headerMap = {};
+        headers.forEach((header, index) => {
+            headerMap[header] = index;
+        });
+        
+        const cards = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split('\t');
+            
+            // Skip if not enough values or not MTG cards
+            if (values.length < headers.length || values[headerMap['Category']] !== 'Magic: The Gathering') {
+                continue;
+            }
+            
+            const card = {
+                name: values[headerMap['Product Name']] || '',
+                set: values[headerMap['Set']] || '',
+                quantity: parseInt(values[headerMap['Quantity']]) || 1,
+                condition: values[headerMap['Card Condition']] || 'Near Mint',
+                rarity: values[headerMap['Rarity']] || '',
+                purchasePrice: parseFloat(values[headerMap['Average Cost Paid']]) || 0,
+                currentPrice: parseFloat(values[headerMap['Market Price (As of 2025-08-22)']]) || 0,
+                isFoil: values[headerMap['Variance']] !== 'Normal',
+                cardNumber: values[headerMap['Card Number']] || '',
+                grade: values[headerMap['Grade']] || 'Ungraded',
+                dateAdded: values[headerMap['Date Added']] || new Date().toISOString().split('T')[0]
+            };
+            
+            // Only add cards with valid names
+            if (card.name && card.name.trim()) {
+                cards.push(card);
+            }
+        }
+        
+        console.log(`Parsed ${cards.length} cards from collection CSV`);
+        return cards;
     }
 
     calculateImportStats(cards) {
@@ -443,13 +496,12 @@ Examples:
             // Clear the stored data
             window.urlImportData = null;
         } else if (activeMethod && activeMethod.dataset.method === 'file') {
-            const fileContent = document.querySelector('.file-selected') ? 
-                document.getElementById('import-text').value : null;
-            if (!fileContent) {
+            // Get the stored file content from the file upload
+            importData = this.storedFileContent;
+            if (!importData) {
                 this.app.showNotification('Please select a file to import', 'warning');
                 return;
             }
-            importData = fileContent;
             parsedCards = this.parseImportData(importData);
         } else {
             importData = document.getElementById('import-text').value.trim();
@@ -460,6 +512,145 @@ Examples:
             parsedCards = this.parseImportData(importData);
         }
 
+        // Use bulk import for large collections (>100 cards)
+        if (parsedCards.length > 100) {
+            return this.performBulkImport(parsedCards, mergeCollection, updatePrices, skipDuplicates);
+        }
+
+        // Standard import for smaller collections
+        return this.performStandardImport(parsedCards, mergeCollection, updatePrices, skipDuplicates);
+    }
+
+    async performBulkImport(parsedCards, mergeCollection, updatePrices, skipDuplicates) {
+        console.log(`Starting bulk import of ${parsedCards.length} cards...`);
+        
+        // Create progress modal
+        const progressModal = this.createProgressModal(parsedCards.length);
+        document.body.appendChild(progressModal);
+        
+        // Close the import modal
+        const importModal = document.querySelector('.modal:not(.progress-modal)');
+        if (importModal) importModal.remove();
+
+        try {
+            let importedCount = 0;
+            let skippedCount = 0;
+            let errorCount = 0;
+            const batchSize = 50; // Process in batches of 50
+            const errors = [];
+
+            // Clear collection if not merging
+            if (!mergeCollection) {
+                this.app.collection = [];
+            }
+
+            // Process in batches
+            for (let batchStart = 0; batchStart < parsedCards.length; batchStart += batchSize) {
+                const batch = parsedCards.slice(batchStart, Math.min(batchStart + batchSize, parsedCards.length));
+                
+                this.updateProgress(progressModal, batchStart, parsedCards.length, `Processing batch ${Math.floor(batchStart / batchSize) + 1}...`);
+
+                for (let i = 0; i < batch.length; i++) {
+                    const cardData = batch[i];
+                    
+                    try {
+                        // Check for duplicates
+                        if (skipDuplicates) {
+                            const existing = this.app.collection.find(c => 
+                                c.name.toLowerCase() === cardData.name.toLowerCase() && 
+                                c.set === cardData.set
+                            );
+                            if (existing) {
+                                skippedCount++;
+                                continue;
+                            }
+                        }
+
+                        // Create card object with all available data
+                        const newCard = {
+                            id: Date.now() + batchStart + i,
+                            name: cardData.name,
+                            set: cardData.set || '',
+                            setCode: cardData.setCode || '',
+                            quantity: cardData.quantity || 1,
+                            condition: cardData.condition || 'Near Mint',
+                            isFoil: cardData.isFoil || false,
+                            purchasePrice: cardData.purchasePrice || 0,
+                            notes: cardData.notes || '',
+                            dateAdded: cardData.dateAdded || new Date().toISOString(),
+                            currentPrice: cardData.currentPrice || 0,
+                            rarity: cardData.rarity || '',
+                            cardNumber: cardData.cardNumber || '',
+                            grade: cardData.grade || 'Ungraded'
+                        };
+
+                        // Only fetch additional data if updatePrices is enabled and we don't have current price
+                        if (updatePrices && !newCard.currentPrice) {
+                            try {
+                                const cardInfo = await this.app.fetchCardData(cardData.name, cardData.set);
+                                newCard.currentPrice = parseFloat(cardInfo.prices?.usd || 0);
+                                newCard.imageUrl = cardInfo.image_uris?.normal || cardInfo.image_uris?.small || '';
+                                newCard.scryfallId = cardInfo.id || '';
+                                newCard.type = cardInfo.type_line || '';
+                                newCard.manaCost = cardInfo.mana_cost || '';
+                                if (!newCard.rarity) newCard.rarity = cardInfo.rarity || '';
+                                
+                                // Respect API limits
+                                await new Promise(resolve => setTimeout(resolve, 75));
+                            } catch (error) {
+                                console.warn(`Could not fetch data for ${cardData.name}:`, error.message);
+                            }
+                        }
+
+                        this.app.collection.push(newCard);
+                        importedCount++;
+
+                    } catch (error) {
+                        console.error(`Error processing card ${cardData.name}:`, error);
+                        errors.push({ card: cardData.name, error: error.message });
+                        errorCount++;
+                    }
+                }
+
+                // Save progress periodically
+                if (batchStart % (batchSize * 4) === 0) {
+                    this.app.saveCollection();
+                }
+
+                // Update progress
+                this.updateProgress(progressModal, batchStart + batch.length, parsedCards.length, 
+                    `Imported ${importedCount} cards...`);
+            }
+
+            // Final save and UI update
+            this.app.saveCollection();
+            this.app.updateCollectionStats();
+            this.app.renderCollection();
+            this.app.populateSetFilter();
+
+            // Close progress modal
+            progressModal.remove();
+
+            // Show completion message
+            let message = `Bulk import completed! Imported ${importedCount} cards`;
+            if (skippedCount > 0) message += `, skipped ${skippedCount} duplicates`;
+            if (errorCount > 0) message += `, ${errorCount} errors`;
+
+            this.app.showNotification(message, importedCount > 0 ? 'success' : 'warning');
+
+            // Show error details if any
+            if (errors.length > 0) {
+                console.warn('Import errors:', errors);
+            }
+
+        } catch (error) {
+            console.error('Bulk import failed:', error);
+            progressModal.remove();
+            this.app.showNotification('Bulk import failed. Please try again.', 'error');
+        }
+    }
+
+    async performStandardImport(parsedCards, mergeCollection, updatePrices, skipDuplicates) {
         try {
             let importedCount = 0;
             let skippedCount = 0;
@@ -552,6 +743,48 @@ Examples:
         }
     }
 
+    createProgressModal(totalCards) {
+        const modal = document.createElement('div');
+        modal.className = 'modal active progress-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Importing ${totalCards} Cards</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="progress-text">Preparing import...</div>
+                        <div class="progress-stats" id="progress-stats">0 / ${totalCards} cards processed</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return modal;
+    }
+
+    updateProgress(modal, current, total, message) {
+        const progressFill = modal.querySelector('#progress-fill');
+        const progressText = modal.querySelector('#progress-text');
+        const progressStats = modal.querySelector('#progress-stats');
+        
+        const percentage = Math.round((current / total) * 100);
+        
+        if (progressFill) {
+            progressFill.style.width = `${percentage}%`;
+        }
+        
+        if (progressText) {
+            progressText.textContent = message;
+        }
+        
+        if (progressStats) {
+            progressStats.textContent = `${current} / ${total} cards processed (${percentage}%)`;
+        }
+    }
+
     async performExport() {
         const format = document.querySelector('input[name="export-format"]:checked').value;
         const includePrices = document.getElementById('include-prices').checked;
@@ -559,56 +792,58 @@ Examples:
         const includeNotes = document.getElementById('include-notes').checked;
         const includeMetadata = document.getElementById('include-metadata').checked;
 
-        if (this.app.collection.length === 0) {
-            this.app.showNotification('No cards in collection to export', 'warning');
-            return;
+        try {
+            let exportData;
+            let filename;
+            let mimeType;
+
+            switch (format) {
+                case 'json':
+                    exportData = this.exportToJSON(includePrices, includePurchasePrices, includeNotes, includeMetadata);
+                    filename = `mtg-collection-${new Date().toISOString().split('T')[0]}.json`;
+                    mimeType = 'application/json';
+                    break;
+                case 'csv':
+                    exportData = this.exportToCSV(includePrices, includePurchasePrices, includeNotes, includeMetadata);
+                    filename = `mtg-collection-${new Date().toISOString().split('T')[0]}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+                case 'deckbox':
+                    exportData = this.exportToDeckbox();
+                    filename = `mtg-collection-deckbox-${new Date().toISOString().split('T')[0]}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+                case 'mtgo':
+                    exportData = this.exportToMTGO();
+                    filename = `mtg-collection-mtgo-${new Date().toISOString().split('T')[0]}.txt`;
+                    mimeType = 'text/plain';
+                    break;
+                default:
+                    throw new Error('Unsupported export format');
+            }
+
+            // Create and download file
+            const blob = new Blob([exportData], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Close modal and show success
+            document.querySelector('.modal').remove();
+            this.app.showNotification(`Collection exported successfully as ${filename}`, 'success');
+
+        } catch (error) {
+            console.error('Export error:', error);
+            this.app.showNotification('Error exporting collection. Please try again.', 'error');
         }
-
-        let exportData;
-        let filename;
-        let mimeType;
-
-        switch (format) {
-            case 'json':
-                exportData = this.exportAsJSON(includePrices, includePurchasePrices, includeNotes, includeMetadata);
-                filename = `mtg-collection-${new Date().toISOString().split('T')[0]}.json`;
-                mimeType = 'application/json';
-                break;
-            case 'csv':
-                exportData = this.exportAsCSV(includePrices, includePurchasePrices, includeNotes, includeMetadata);
-                filename = `mtg-collection-${new Date().toISOString().split('T')[0]}.csv`;
-                mimeType = 'text/csv';
-                break;
-            case 'deckbox':
-                exportData = this.exportAsDeckboxCSV();
-                filename = `mtg-collection-deckbox-${new Date().toISOString().split('T')[0]}.csv`;
-                mimeType = 'text/csv';
-                break;
-            case 'mtgo':
-                exportData = this.exportAsMTGO();
-                filename = `mtg-collection-mtgo-${new Date().toISOString().split('T')[0]}.txt`;
-                mimeType = 'text/plain';
-                break;
-        }
-
-        // Download file
-        const blob = new Blob([exportData], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        // Close modal
-        document.querySelector('.modal').remove();
-
-        this.app.showNotification(`Collection exported as ${filename}`, 'success');
     }
 
-    exportAsJSON(includePrices, includePurchasePrices, includeNotes, includeMetadata) {
+    exportToJSON(includePrices, includePurchasePrices, includeNotes, includeMetadata) {
         const exportCollection = this.app.collection.map(card => {
             const exportCard = {
                 name: card.name,
@@ -621,48 +856,50 @@ Examples:
             if (includePrices && card.currentPrice) {
                 exportCard.currentPrice = card.currentPrice;
             }
+
             if (includePurchasePrices && card.purchasePrice) {
                 exportCard.purchasePrice = card.purchasePrice;
             }
+
             if (includeNotes && card.notes) {
                 exportCard.notes = card.notes;
             }
+
             if (includeMetadata) {
                 exportCard.id = card.id;
+                exportCard.dateAdded = card.dateAdded;
                 exportCard.setCode = card.setCode;
-                exportCard.scryfallId = card.scryfallId;
-                exportCard.imageUrl = card.imageUrl;
+                exportCard.rarity = card.rarity;
                 exportCard.type = card.type;
                 exportCard.manaCost = card.manaCost;
-                exportCard.rarity = card.rarity;
-                exportCard.dateAdded = card.dateAdded;
+                exportCard.scryfallId = card.scryfallId;
             }
 
             return exportCard;
         });
 
         return JSON.stringify({
+            collection: exportCollection,
             exportDate: new Date().toISOString(),
             totalCards: this.app.collection.reduce((sum, card) => sum + card.quantity, 0),
-            uniqueCards: this.app.collection.length,
-            collection: exportCollection
+            uniqueCards: this.app.collection.length
         }, null, 2);
     }
 
-    exportAsCSV(includePrices, includePurchasePrices, includeNotes, includeMetadata) {
+    exportToCSV(includePrices, includePurchasePrices, includeNotes, includeMetadata) {
         const headers = ['Name', 'Set', 'Quantity', 'Condition', 'Foil'];
         
         if (includePrices) headers.push('Current Price');
         if (includePurchasePrices) headers.push('Purchase Price');
         if (includeNotes) headers.push('Notes');
-        if (includeMetadata) headers.push('Set Code', 'Type', 'Mana Cost', 'Rarity', 'Date Added');
+        if (includeMetadata) headers.push('Date Added', 'Rarity', 'Type', 'Mana Cost');
 
         const rows = [headers.join(',')];
 
         this.app.collection.forEach(card => {
             const row = [
                 `"${card.name}"`,
-                `"${card.set}"`,
+                `"${card.set || ''}"`,
                 card.quantity,
                 `"${card.condition}"`,
                 card.isFoil ? 'Yes' : 'No'
@@ -670,14 +907,13 @@ Examples:
 
             if (includePrices) row.push(card.currentPrice || 0);
             if (includePurchasePrices) row.push(card.purchasePrice || 0);
-            if (includeNotes) row.push(`"${card.notes || ''}"`);
+            if (includeNotes) row.push(`"${(card.notes || '').replace(/"/g, '""')}"`);
             if (includeMetadata) {
                 row.push(
-                    `"${card.setCode || ''}"`,
-                    `"${card.type || ''}"`,
-                    `"${card.manaCost || ''}"`,
+                    `"${card.dateAdded || ''}"`,
                     `"${card.rarity || ''}"`,
-                    `"${card.dateAdded || ''}"`
+                    `"${card.type || ''}"`,
+                    `"${card.manaCost || ''}"`
                 );
             }
 
@@ -687,7 +923,7 @@ Examples:
         return rows.join('\n');
     }
 
-    exportAsDeckboxCSV() {
+    exportToDeckbox() {
         const headers = ['Count', 'Name', 'Edition', 'Condition', 'Language', 'Foil', 'Signed', 'Artist Proof', 'Altered Art', 'Misprint', 'Promo', 'Textless', 'My Price'];
         const rows = [headers.join(',')];
 
@@ -695,7 +931,7 @@ Examples:
             const row = [
                 card.quantity,
                 `"${card.name}"`,
-                `"${card.set}"`,
+                `"${card.set || ''}"`,
                 `"${card.condition}"`,
                 'English',
                 card.isFoil ? 'foil' : '',
@@ -708,7 +944,7 @@ Examples:
         return rows.join('\n');
     }
 
-    exportAsMTGO() {
+    exportToMTGO() {
         const lines = [];
         this.app.collection.forEach(card => {
             lines.push(`${card.quantity} ${card.name}`);
@@ -720,10 +956,12 @@ Examples:
         const modal = document.createElement('div');
         modal.className = 'modal active';
         modal.innerHTML = `
-            <div class="modal-content import-export-modal">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h3>${title}</h3>
-                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     ${content}
@@ -734,289 +972,7 @@ Examples:
     }
 }
 
-// Add import/export styles
-const importExportStyles = document.createElement('style');
-importExportStyles.textContent = `
-    .import-export-controls {
-        display: flex;
-        gap: 0.5rem;
-        margin-right: 1rem;
-    }
-
-    .import-export-modal {
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-
-    .format-options {
-        display: grid;
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-
-    .format-option {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 1rem;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .format-option:hover {
-        border-color: rgba(255, 215, 0, 0.5);
-        background: rgba(255, 215, 0, 0.1);
-    }
-
-    .format-option input[type="radio"] {
-        margin-top: 0.25rem;
-    }
-
-    .format-option input[type="radio"]:checked + .format-details {
-        color: #ffd700;
-    }
-
-    .format-details strong {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
-    }
-
-    .format-details p {
-        margin: 0;
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
-    }
-
-    .export-options-advanced,
-    .import-options-advanced {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .checkbox-option {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-    }
-
-    .import-methods {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-
-    .import-method {
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .import-method.active {
-        border-color: #ffd700;
-        background: rgba(255, 215, 0, 0.1);
-    }
-
-    .import-method h5 {
-        margin: 0 0 1rem 0;
-        color: #ffd700;
-    }
-
-    .file-upload-area {
-        border: 2px dashed rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        padding: 2rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .file-upload-area:hover,
-    .file-upload-area.drag-over {
-        border-color: #ffd700;
-        background: rgba(255, 215, 0, 0.1);
-    }
-
-    .upload-placeholder i {
-        font-size: 2rem;
-        color: #ffd700;
-        margin-bottom: 1rem;
-    }
-
-    .file-selected {
-        color: #4CAF50;
-    }
-
-    .file-selected i {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    #import-text {
-        width: 100%;
-        height: 200px;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        color: white;
-        padding: 1rem;
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
-        resize: vertical;
-    }
-
-    .import-preview {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .stat-item {
-        text-align: center;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 1rem;
-        border-radius: 8px;
-    }
-
-    .stat-item strong {
-        display: block;
-        font-size: 1.5rem;
-        color: #ffd700;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-item span {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
-    }
-
-    .preview-card-list {
-        max-height: 200px;
-        overflow-y: auto;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        padding: 1rem;
-    }
-
-    .preview-card-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .preview-card-item:last-child {
-        border-bottom: none;
-    }
-
-    .card-name {
-        flex: 1;
-        font-weight: bold;
-    }
-
-    .card-quantity {
-        color: #ffd700;
-        font-weight: bold;
-    }
-
-    .card-set {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.9rem;
-    }
-
-    .preview-more {
-        text-align: center;
-        color: rgba(255, 255, 255, 0.7);
-        font-style: italic;
-        padding: 1rem 0;
-    }
-
-    .url-import-area {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    #import-url {
-        width: 100%;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        color: white;
-        padding: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    #import-url:focus {
-        border-color: #ffd700;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
-    }
-
-    #fetch-url-btn {
-        align-self: flex-start;
-        min-width: 150px;
-    }
-
-    .url-import-status {
-        min-height: 1.5rem;
-        margin: 0.5rem 0;
-    }
-
-    .status-loading {
-        color: #ffd700;
-        font-style: italic;
-    }
-
-    .status-success {
-        color: #4CAF50;
-        font-weight: bold;
-    }
-
-    .status-error {
-        color: #f44336;
-        font-weight: bold;
-    }
-
-    .supported-sites {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-
-    @media (max-width: 768px) {
-        .import-methods {
-            grid-template-columns: 1fr;
-        }
-        
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .import-export-modal {
-            max-width: 95vw;
-            margin: 1rem;
-        }
-    }
-`;
-document.head.appendChild(importExportStyles);
-
-// Export for use in main app
-window.CollectionImportExport = CollectionImportExport;
+// Initialize when DOM is loaded
+if (typeof window !== 'undefined') {
+    window.CollectionImportExport = CollectionImportExport;
+}
