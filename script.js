@@ -31,6 +31,9 @@ class MTGCollectionTracker {
         this.populateSearchSetFilter();
         this.initializeAuth();
         
+        // Check for demo admin mode flag
+        this.checkDemoAdminFlag();
+        
         setTimeout(() => {
             // Legacy PriceTracker is replaced by EnhancedPriceTracker
             // if (window.PriceTracker) {
@@ -230,6 +233,12 @@ class MTGCollectionTracker {
             adminNavBtn.style.display = 'none';
         }
         
+        // Hide admin settings section
+        const adminSettings = document.getElementById('admin-settings');
+        if (adminSettings) {
+            adminSettings.style.display = 'none';
+        }
+        
         // Show login prompt
         this.showLoginPrompt();
     }
@@ -387,12 +396,27 @@ class MTGCollectionTracker {
     async handleLogin(e) {
         e.preventDefault();
         
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value.trim();
         const errorEl = document.getElementById('login-error');
         
         try {
             errorEl.style.display = 'none';
+            
+            // Validate that all fields are filled
+            if (!email || !password) {
+                throw new Error('Please fill in all fields');
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                throw new Error('Please enter a valid email address');
+            }
+            
+            if (password.length < 6) {
+                throw new Error('Password must be at least 6 characters long');
+            }
             
             if (typeof Auth !== 'undefined' && Auth.signIn) {
                 await Auth.signIn(email, password);
@@ -410,14 +434,39 @@ class MTGCollectionTracker {
     async handleRegister(e) {
         e.preventDefault();
         
-        const email = document.getElementById('register-email').value;
-        const username = document.getElementById('register-username').value;
-        const password = document.getElementById('register-password').value;
-        const inviteCode = document.getElementById('register-invite-code').value;
+        const email = document.getElementById('register-email').value.trim();
+        const username = document.getElementById('register-username').value.trim();
+        const password = document.getElementById('register-password').value.trim();
+        const inviteCode = document.getElementById('register-invite-code').value.trim();
         const errorEl = document.getElementById('register-error');
         
         try {
             errorEl.style.display = 'none';
+            
+            // Validate that all fields are filled
+            if (!email || !username || !password || !inviteCode) {
+                throw new Error('Please fill in all fields');
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                throw new Error('Please enter a valid email address');
+            }
+            
+            // Username validation
+            if (username.length < 3) {
+                throw new Error('Username must be at least 3 characters long');
+            }
+            
+            if (password.length < 6) {
+                throw new Error('Password must be at least 6 characters long');
+            }
+            
+            // Invite code validation
+            if (inviteCode.length < 6) {
+                throw new Error('Please enter a valid invite code');
+            }
             
             if (typeof Auth !== 'undefined' && Auth.signUp) {
                 await Auth.signUp(email, password, username, inviteCode);
@@ -798,33 +847,64 @@ class MTGCollectionTracker {
             });
         }
 
-        // Search functionality
-        document.getElementById('search-btn').addEventListener('click', () => this.searchCards());
-        document.getElementById('card-search').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.searchCards();
-        });
+        // Search functionality - with null checks
+        const searchBtn = document.getElementById('search-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => this.searchCards());
+        }
+        
+        const cardSearch = document.getElementById('card-search');
+        if (cardSearch) {
+            cardSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.searchCards();
+            });
+        }
 
-        // Collection filters
-        document.getElementById('collection-search').addEventListener('input', (e) => this.filterCollection());
-        document.getElementById('condition-filter').addEventListener('change', () => this.filterCollection());
-        document.getElementById('set-filter').addEventListener('change', () => this.filterCollection());
+        // Collection filters - with null checks
+        const collectionSearch = document.getElementById('collection-search');
+        if (collectionSearch) {
+            collectionSearch.addEventListener('input', (e) => this.filterCollection());
+        }
+        
+        const conditionFilter = document.getElementById('condition-filter');
+        if (conditionFilter) {
+            conditionFilter.addEventListener('change', () => this.filterCollection());
+        }
+        
+        const setFilter = document.getElementById('set-filter');
+        if (setFilter) {
+            setFilter.addEventListener('change', () => this.filterCollection());
+        }
 
-        // Rules search
-        document.getElementById('rules-search').addEventListener('input', (e) => this.searchRules(e.target.value));
+        // Rules search - with null check
+        const rulesSearch = document.getElementById('rules-search');
+        if (rulesSearch) {
+            rulesSearch.addEventListener('input', (e) => this.searchRules(e.target.value));
+        }
 
-        // Dictionary functionality
-        document.getElementById('dictionary-search').addEventListener('input', (e) => this.searchDictionary(e.target.value));
+        // Dictionary functionality - with null checks
+        const dictionarySearch = document.getElementById('dictionary-search');
+        if (dictionarySearch) {
+            dictionarySearch.addEventListener('input', (e) => this.searchDictionary(e.target.value));
+        }
+        
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.filterDictionary(e.target.dataset.category));
         });
 
-        // Modal click outside to close
-        document.getElementById('add-card-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'add-card-modal') this.closeAddCardModal();
-        });
+        // Modal click outside to close - with null check
+        const addCardModal = document.getElementById('add-card-modal');
+        if (addCardModal) {
+            addCardModal.addEventListener('click', (e) => {
+                if (e.target.id === 'add-card-modal') this.closeAddCardModal();
+            });
+        }
 
-        // Card name input for live preview
-        document.getElementById('card-name').addEventListener('input', (e) => this.previewCard(e.target.value));
+        // Card name input for live preview - with null check
+        const cardNameInput = document.getElementById('card-name');
+        if (cardNameInput) {
+            cardNameInput.addEventListener('input', (e) => this.previewCard(e.target.value));
+        }
     }
 
     switchTab(tabName) {
@@ -1659,6 +1739,53 @@ class MTGCollectionTracker {
                 setTimeout(() => arOption.remove(), 300);
             }
         }, 10000);
+    }
+
+    // Check for demo admin mode flag
+    checkDemoAdminFlag() {
+        const enableDemoAdmin = localStorage.getItem('enableDemoAdmin');
+        if (enableDemoAdmin === 'true') {
+            // Clear the flag so it doesn't persist
+            localStorage.removeItem('enableDemoAdmin');
+            
+            // Enable demo admin mode
+            setTimeout(() => {
+                this.enableDemoAdminMode();
+            }, 1000); // Delay to ensure UI is ready
+        }
+    }
+
+    // Demo Admin Functionality (for testing purposes)
+    enableDemoAdminMode() {
+        // Simulate admin user login for testing
+        this.currentUser = {
+            id: 'demo-admin-123',
+            email: 'admin@deckforge.com'
+        };
+        this.userProfile = {
+            username: 'Demo Admin',
+            is_admin: true,
+            role: 'ADMIN'
+        };
+        this.isAuthenticated = true;
+        
+        // Update UI for admin user
+        this.updateUIForAuthenticatedUser();
+        
+        // Show admin settings section
+        const adminSettings = document.getElementById('admin-settings');
+        if (adminSettings) {
+            adminSettings.style.display = 'block';
+        }
+        
+        // Update user info in settings
+        const usernameEl = document.getElementById('current-username');
+        const roleEl = document.getElementById('current-role');
+        
+        if (usernameEl) usernameEl.textContent = 'Demo Admin';
+        if (roleEl) roleEl.textContent = 'ADMIN';
+        
+        this.showNotification('Demo admin mode enabled! Admin panel is now accessible.', 'success');
     }
 
     // Utility Functions

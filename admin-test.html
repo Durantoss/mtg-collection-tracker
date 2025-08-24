@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Test - Deck Forge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2a1a4d, #3c2a6e);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+        }
+        .btn {
+            background: #ffd700;
+            color: #2a1a4d;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #ffed4e;
+        }
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔥 Deck Forge Admin Test</h1>
+        <p>This page will automatically enable demo admin mode and redirect to the main application.</p>
+        
+        <div class="status" id="status">
+            Initializing admin test...
+        </div>
+        
+        <button class="btn" onclick="enableAdminAndRedirect()">Enable Admin Mode & Go to App</button>
+        <a href="index.html" class="btn">Go to Main App</a>
+    </div>
+
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function enableAdminAndRedirect() {
+            updateStatus('Enabling demo admin mode...');
+            
+            // Set a flag in localStorage to enable admin mode
+            localStorage.setItem('enableDemoAdmin', 'true');
+            
+            updateStatus('Demo admin mode enabled! Redirecting...');
+            
+            // Redirect to main app after a short delay
+            setTimeout(() => {
+                window.location.href = 'index.html#settings';
+            }, 1000);
+        }
+
+        // Auto-enable admin mode when page loads
+        window.addEventListener('load', () => {
+            updateStatus('Setting up demo admin mode...');
+            localStorage.setItem('enableDemoAdmin', 'true');
+            updateStatus('Demo admin mode ready! Click the button to proceed.');
+        });
+    </script>
+</body>
+</html>

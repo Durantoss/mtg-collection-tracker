@@ -631,7 +631,7 @@ class DeckForgeApp {
 
     updateDeckStats() {
         // Update deck statistics
-        if (window.deckBuilder && window.deckBuilder.currentDeck) {
+        if (window.deckBuilder && window.deckBuilder.currentDeck && window.deckBuilder.getDeckStats) {
             const deck = window.deckBuilder.currentDeck;
             const stats = window.deckBuilder.getDeckStats(deck);
             
@@ -639,6 +639,12 @@ class DeckForgeApp {
             document.getElementById('deck-creatures').textContent = stats.creatures || '0';
             document.getElementById('deck-spells').textContent = stats.spells || '0';
             document.getElementById('deck-lands').textContent = stats.lands || '0';
+        } else {
+            // Fallback values when deck builder is not ready
+            document.getElementById('deck-total-cards').textContent = '0';
+            document.getElementById('deck-creatures').textContent = '0';
+            document.getElementById('deck-spells').textContent = '0';
+            document.getElementById('deck-lands').textContent = '0';
         }
     }
 

@@ -718,6 +718,51 @@ class DeckBuilder {
         return cmc;
     }
 
+    // Get current deck stats (for external access)
+    getDeckStats(deck = null) {
+        if (deck) {
+            // Calculate stats for provided deck
+            let totalCards = 0;
+            let creatures = 0;
+            let spells = 0;
+            let lands = 0;
+            let totalCmc = 0;
+            let nonLandCards = 0;
+
+            deck.forEach(card => {
+                const quantity = card.quantity || 1;
+                totalCards += quantity;
+                
+                const cardType = this.getCardType(card.type);
+                const cmc = this.getConvertedManaCost(card.manaCost);
+                
+                if (cardType === 'Land') {
+                    lands += quantity;
+                } else {
+                    nonLandCards += quantity;
+                    totalCmc += cmc * quantity;
+                    
+                    if (cardType === 'Creature') {
+                        creatures += quantity;
+                    } else {
+                        spells += quantity;
+                    }
+                }
+            });
+
+            return {
+                totalCards,
+                creatures,
+                spells,
+                lands,
+                avgCmc: nonLandCards > 0 ? (totalCmc / nonLandCards) : 0
+            };
+        }
+        
+        // Return current deck stats
+        return this.deckStats;
+    }
+
     // Clear current deck
     clearDeck() {
         if (this.currentDeck.length === 0) return;

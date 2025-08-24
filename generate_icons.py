@@ -67,8 +67,8 @@ def main():
     # Create icons directory if it doesn't exist
     os.makedirs('icons', exist_ok=True)
     
-    # Required icon sizes for PWA
-    sizes = [72, 96, 128, 144, 152, 192, 384, 512]
+    # Required icon sizes for PWA (including favicon sizes)
+    sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512]
     
     print("Generating PWA icons for MTG Collection Tracker...")
     
