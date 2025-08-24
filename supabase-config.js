@@ -413,7 +413,7 @@ const Admin = {
             .from(SUPABASE_CONFIG.tables.inviteCodes)
             .insert([{
                 code: code.toUpperCase(),
-                created_by: adminUserId,
+                created_by: adminUserId || 'admin',
                 expires_at: expiresAt.toISOString()
             }])
             .select()

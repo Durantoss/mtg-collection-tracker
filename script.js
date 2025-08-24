@@ -186,38 +186,30 @@ class MTGCollectionTracker {
         // Remove any existing login prompts that might be blocking the UI
         this.removeLoginPrompts();
         
-        // Show user menu - but hide it on mobile after a brief display
-        const userMenu = document.getElementById('user-menu');
-        if (userMenu) {
-            userMenu.style.display = 'block';
-            
-            // Update user info
-            const usernameEl = document.getElementById('current-username');
-            const roleEl = document.getElementById('current-role');
-            
-            if (usernameEl) usernameEl.textContent = this.userProfile?.username || 'User';
-            if (roleEl) roleEl.textContent = this.userProfile?.is_admin ? 'Admin' : 'User';
-            
-            // Hide user menu on mobile after sign-in
-            if (window.innerWidth <= 768) {
-                setTimeout(() => {
-                    userMenu.style.display = 'none';
-                }, 2000); // Hide after 2 seconds on mobile
-            }
-        }
+        // Update user info in settings section
+        const usernameEl = document.getElementById('current-username');
+        const roleEl = document.getElementById('current-role');
         
-        // Show/hide admin navigation button based on user role
-        const adminNavBtn = document.getElementById('admin-nav-btn');
-        if (adminNavBtn) {
+        if (usernameEl) usernameEl.textContent = this.userProfile?.username || this.currentUser?.email || 'User';
+        if (roleEl) roleEl.textContent = this.userProfile?.is_admin ? 'ADMIN' : 'USER';
+        
+        // Show admin settings section if user is admin
+        const adminSettings = document.getElementById('admin-settings');
+        if (adminSettings) {
             if (this.userProfile?.is_admin) {
-                adminNavBtn.style.display = 'block';
+                adminSettings.style.display = 'block';
+                console.log('Admin settings section shown for admin user');
             } else {
-                adminNavBtn.style.display = 'none';
+                adminSettings.style.display = 'none';
             }
         }
         
         // Update navigation to show user is logged in
         this.updateNavigation();
+        
+        // Show success notification with admin status
+        const roleText = this.userProfile?.is_admin ? ' (Admin Access Granted)' : '';
+        console.log(`User authenticated: ${this.userProfile?.username || this.currentUser?.email}${roleText}`);
     }
 
     updateUIForUnauthenticatedUser() {

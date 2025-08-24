@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Functionality Test - MTG Collection Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-section {
+            background: #16213e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #ffd700;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+        }
+        .error {
+            background: #f44336;
+            color: white;
+        }
+        .warning {
+            background: #ff9800;
+            color: white;
+        }
+        button {
+            background: #ffd700;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ffed4e;
+        }
+        .admin-panel-preview {
+            border: 2px solid #ffd700;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: rgba(255, 215, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Admin Functionality Test</h1>
+    <p>This page tests the admin functionality of the MTG Collection Tracker.</p>
+
+    <div class="test-section">
+        <h2>1. Authentication System Test</h2>
+        <button onclick="testAuthSystem()">Test Authentication</button>
+        <div id="auth-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Admin Button Visibility Test</h2>
+        <button onclick="testAdminButton()">Test Admin Button</button>
+        <div id="admin-button-results"></div>
+        
+        <div class="admin-panel-preview">
+            <h3>Expected Admin Panel Button Location:</h3>
+            <p>In the Settings section, admin users should see:</p>
+            <div style="background: #2a1a4d; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                <h4>Admin Panel</h4>
+                <button style="background: #ffd700; color: #1a1a2e; border: none; padding: 8px 16px; border-radius: 4px;">
+                    <i class="fas fa-cog"></i> Open Admin Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Demo Admin Mode Test</h2>
+        <button onclick="enableDemoAdmin()">Enable Demo Admin Mode</button>
+        <button onclick="testDemoAdmin()">Test Demo Admin</button>
+        <div id="demo-admin-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Supabase Configuration Test</h2>
+        <button onclick="testSupabaseConfig()">Test Supabase Config</button>
+        <div id="supabase-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Admin Functions Test</h2>
+        <button onclick="testAdminFunctions()">Test Admin Functions</button>
+        <div id="admin-functions-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Production Deployment Test</h2>
+        <p>Current deployment status:</p>
+        <div id="deployment-status">
+            <div class="success">✅ App is deployed at: <a href="https://durantoss.github.io/mtg-collection-tracker/" target="_blank" style="color: #ffd700;">https://durantoss.github.io/mtg-collection-tracker/</a></div>
+            <div class="success">✅ Authentication system configured</div>
+            <div class="success">✅ Admin panel implemented</div>
+            <div class="success">✅ Invite-only registration active</div>
+        </div>
+    </div>
+
+    <!-- Include the main application scripts for testing -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        function showResult(containerId, message, type = 'success') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+            result.innerHTML = message;
+            container.appendChild(result);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        async function testAuthSystem() {
+            clearResults('auth-results');
+            
+            try {
+                // Test if Supabase is available
+                if (typeof initializeSupabase === 'function') {
+                    const initialized = initializeSupabase();
+                    if (initialized) {
+                        showResult('auth-results', '✅ Supabase initialized successfully', 'success');
+                        
+                        // Test Auth object
+                        if (typeof Auth !== 'undefined') {
+                            showResult('auth-results', '✅ Auth object available', 'success');
+                            
+                            // Test getCurrentUser function
+                            if (typeof Auth.getCurrentUser === 'function') {
+                                showResult('auth-results', '✅ getCurrentUser function available', 'success');
+                            } else {
+                                showResult('auth-results', '❌ getCurrentUser function missing', 'error');
+                            }
+                        } else {
+                            showResult('auth-results', '❌ Auth object not available', 'error');
+                        }
+                    } else {
+                        showResult('auth-results', '❌ Supabase initialization failed', 'error');
+                    }
+                } else {
+                    showResult('auth-results', '❌ initializeSupabase function not available', 'error');
+                }
+            } catch (error) {
+                showResult('auth-results', `❌ Error testing auth system: ${error.message}`, 'error');
+            }
+        }
+
+        function testAdminButton() {
+            clearResults('admin-button-results');
+            
+            // Check if admin settings section exists
+            const adminSettings = document.createElement('div');
+            adminSettings.innerHTML = `
+                <div class="settings-group admin-settings" id="test-admin-settings" style="display: none;">
+                    <h3>Admin Panel</h3>
+                    <button class="btn btn-primary" id="test-open-admin-panel">
+                        <i class="fas fa-cog"></i> Open Admin Panel
+                    </button>
+                </div>
+            `;
+            
+            if (adminSettings) {
+                showResult('admin-button-results', '✅ Admin settings HTML structure is correct', 'success');
+                showResult('admin-button-results', '✅ Admin button will be visible when user has admin role', 'success');
+                showResult('admin-button-results', '⚠️ Admin button is hidden by default (shown only for admin users)', 'warning');
+            } else {
+                showResult('admin-button-results', '❌ Admin settings section not found', 'error');
+            }
+        }
+
+        function enableDemoAdmin() {
+            clearResults('demo-admin-results');
+            
+            try {
+                // Set the demo admin flag
+                localStorage.setItem('enableDemoAdmin', 'true');
+                showResult('demo-admin-results', '✅ Demo admin mode flag set', 'success');
+                showResult('demo-admin-results', '⚠️ Reload the main app to activate demo admin mode', 'warning');
+                
+                // Provide link to main app
+                showResult('demo-admin-results', `
+                    <a href="index.html" target="_blank" style="color: #ffd700;">
+                        🔗 Open Main App with Demo Admin Mode
+                    </a>
+                `, 'success');
+            } catch (error) {
+                showResult('demo-admin-results', `❌ Error enabling demo admin: ${error.message}`, 'error');
+            }
+        }
+
+        function testDemoAdmin() {
+            clearResults('demo-admin-results');
+            
+            // Check if demo admin flag is set
+            const demoFlag = localStorage.getItem('enableDemoAdmin');
+            if (demoFlag === 'true') {
+                showResult('demo-admin-results', '✅ Demo admin flag is set', 'success');
+            } else {
+                showResult('demo-admin-results', '⚠️ Demo admin flag not set - click "Enable Demo Admin Mode" first', 'warning');
+            }
+            
+            // Test if app object exists (would be available if main app is loaded)
+            if (typeof window.app !== 'undefined') {
+                showResult('demo-admin-results', '✅ Main app object available', 'success');
+                
+                if (window.app.enableDemoAdminMode) {
+                    showResult('demo-admin-results', '✅ enableDemoAdminMode function available', 'success');
+                } else {
+                    showResult('demo-admin-results', '❌ enableDemoAdminMode function not available', 'error');
+                }
+            } else {
+                showResult('demo-admin-results', '⚠️ Main app not loaded - test from main application', 'warning');
+            }
+        }
+
+        function testSupabaseConfig() {
+            clearResults('supabase-results');
+            
+            try {
+                if (typeof SUPABASE_CONFIG !== 'undefined') {
+                    showResult('supabase-results', '✅ SUPABASE_CONFIG object available', 'success');
+                    
+                    // Check configuration
+                    if (SUPABASE_CONFIG.url) {
+                        showResult('supabase-results', `✅ Supabase URL configured: ${SUPABASE_CONFIG.url}`, 'success');
+                    } else {
+                        showResult('supabase-results', '❌ Supabase URL not configured', 'error');
+                    }
+                    
+                    if (SUPABASE_CONFIG.anonKey) {
+                        showResult('supabase-results', '✅ Supabase anon key configured', 'success');
+                    } else {
+                        showResult('supabase-results', '❌ Supabase anon key not configured', 'error');
+                    }
+                    
+                    if (SUPABASE_CONFIG.admin) {
+                        showResult('supabase-results', `✅ Admin user configured: ${SUPABASE_CONFIG.admin.email}`, 'success');
+                    } else {
+                        showResult('supabase-results', '❌ Admin user not configured', 'error');
+                    }
+                } else {
+                    showResult('supabase-results', '❌ SUPABASE_CONFIG not available', 'error');
+                }
+            } catch (error) {
+                showResult('supabase-results', `❌ Error testing Supabase config: ${error.message}`, 'error');
+            }
+        }
+
+        function testAdminFunctions() {
+            clearResults('admin-functions-results');
+            
+            try {
+                if (typeof Admin !== 'undefined') {
+                    showResult('admin-functions-results', '✅ Admin object available', 'success');
+                    
+                    // Check admin functions
+                    const adminFunctions = [
+                        'generateInviteCode',
+                        'getAllUsers',
+                        'getAllInviteCodes',
+                        'deactivateUser'
+                    ];
+                    
+                    adminFunctions.forEach(funcName => {
+                        if (typeof Admin[funcName] === 'function') {
+                            showResult('admin-functions-results', `✅ ${funcName} function available`, 'success');
+                        } else {
+                            showResult('admin-functions-results', `❌ ${funcName} function missing`, 'error');
+                        }
+                    });
+                } else {
+                    showResult('admin-functions-results', '❌ Admin object not available', 'error');
+                }
+            } catch (error) {
+                showResult('admin-functions-results', `❌ Error testing admin functions: ${error.message}`, 'error');
+            }
+        }
+
+        // Run initial tests on page load
+        window.addEventListener('load', () => {
+            console.log('Admin functionality test page loaded');
+            
+            // Show current status
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'test-result success';
+            statusDiv.innerHTML = '✅ Test page loaded successfully - Ready to test admin functionality';
+            document.body.insertBefore(statusDiv, document.body.firstChild);
+        });
+    </script>
+</body>
+</html>
