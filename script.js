@@ -388,12 +388,34 @@ class MTGCollectionTracker {
     async handleLogin(e) {
         e.preventDefault();
         
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-password').value.trim();
+        // Get form elements with better error handling
+        const emailEl = document.getElementById('login-email');
+        const passwordEl = document.getElementById('login-password');
         const errorEl = document.getElementById('login-error');
         
+        // Debug logging
+        console.log('Login form submitted');
+        console.log('Email element:', emailEl);
+        console.log('Password element:', passwordEl);
+        console.log('Error element:', errorEl);
+        
+        // Check if elements exist
+        if (!emailEl || !passwordEl || !errorEl) {
+            console.error('Login form elements not found');
+            alert('Login form error: Required elements not found. Please refresh the page.');
+            return;
+        }
+        
+        const email = emailEl.value ? emailEl.value.trim() : '';
+        const password = passwordEl.value ? passwordEl.value.trim() : '';
+        
+        console.log('Email value:', email);
+        console.log('Password length:', password.length);
+        
         try {
+            // Hide previous errors
             errorEl.style.display = 'none';
+            errorEl.textContent = '';
             
             // Validate that all fields are filled
             if (!email || !password) {
@@ -410,10 +432,13 @@ class MTGCollectionTracker {
                 throw new Error('Password must be at least 6 characters long');
             }
             
+            // Check if authentication system is available
             if (typeof Auth !== 'undefined' && Auth.signIn) {
+                console.log('Attempting to sign in with Auth system');
                 await Auth.signIn(email, password);
                 // Auth state change will be handled by the listener
             } else {
+                console.error('Auth system not available:', typeof Auth);
                 throw new Error('Authentication system not available');
             }
         } catch (error) {
