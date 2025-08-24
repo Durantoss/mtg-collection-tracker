@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@vercel/sdk": "^1.10.6"
+    "@vercel/sdk": "^1.10.6",
+    "@vercel/speed-insights": "^1.2.0"
   }
 }
