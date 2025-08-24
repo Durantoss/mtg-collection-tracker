@@ -49,11 +49,12 @@ A comprehensive Magic: The Gathering collection management app that works on all
 3. **Follow Option 1** to start the server
 
 ### Option 3: Deploy Online
-See `PWA-DEPLOYMENT-GUIDE.md` for detailed deployment instructions to:
-- GitHub Pages (Free)
+See `GITHUB-PAGES-DEPLOYMENT-GUIDE.md` for detailed deployment instructions to:
+- GitHub Pages (Free) - **Currently Active**
 - Netlify (Free)
-- Vercel (Free)
 - Firebase Hosting (Free)
+
+**Current Live Deployment**: https://durantoss.github.io/mtg-collection-tracker/
 
 ## 📁 Project Structure
 
@@ -69,7 +70,7 @@ mtg_collection_tracker/
 ├── 🎯 icon-generator.html     # Tool to create app icons
 ├── 🐍 serve.py                # Local HTTPS server
 ├── 🪟 start-server.bat        # Windows server launcher
-├── 📖 PWA-DEPLOYMENT-GUIDE.md # Detailed deployment guide
+├── 📖 GITHUB-PAGES-DEPLOYMENT-GUIDE.md # Detailed deployment guide
 ├── 📋 README.md               # This file
 └── 📁 icons/                  # App icons (generate with icon-generator.html)
 ```
@@ -221,4 +222,4 @@ Your MTG Collection Tracker is now a fully functional Progressive Web App! Insta
 
 ---
 
-**Need Help?** Check the `PWA-DEPLOYMENT-GUIDE.md` for detailed instructions, or open an issue if you encounter problems.
+**Need Help?** Check the `GITHUB-PAGES-DEPLOYMENT-GUIDE.md` for detailed instructions, or open an issue if you encounter problems.

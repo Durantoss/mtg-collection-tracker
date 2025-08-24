@@ -1,7 +1,7 @@
 # 🎉 MTG Collection Tracker - DEPLOYMENT SUCCESS!
 
 ## 🚀 Your App is LIVE!
-**Production URL**: https://mtg-collection-tracker.vercel.app/
+**Production URL**: https://durantoss.github.io/mtg-collection-tracker/
 
 ## ✅ What's Been Accomplished
 
@@ -23,7 +23,7 @@
 
 ### **Deployment Infrastructure**
 - ✅ **GitHub Repository** - https://github.com/Durantoss/mtg-collection-tracker
-- ✅ **Vercel Hosting** - Automatic HTTPS, global CDN, optimized performance
+- ✅ **GitHub Pages Hosting** - Automatic HTTPS, global CDN, optimized performance
 - ✅ **Production Configuration** - Supabase URLs updated for live environment
 
 ## 👤 Admin Account Details
@@ -33,10 +33,10 @@
 - **Access**: Full admin panel with user management and invite code generation
 
 ## 🎫 Your 15 Invite Codes
-Your users can register using any of these codes at: https://mtg-collection-tracker.vercel.app/
+Your users can register using any of these codes at: https://durantoss.github.io/mtg-collection-tracker/
 
 **To find your specific invite codes:**
-1. Log into your admin panel at https://mtg-collection-tracker.vercel.app/
+1. Log into your admin panel at https://durantoss.github.io/mtg-collection-tracker/
 2. Click "Admin Panel" → "Invite Codes" tab
 3. Copy the 15 unused codes (they look like "XXXX-XXXX-XXXX" format)
 4. Share these codes with your intended users
@@ -47,7 +47,7 @@ Send this to your users:
 ---
 **Welcome to MTG Collection Tracker!**
 
-1. Visit: https://mtg-collection-tracker.vercel.app/
+1. Visit: https://durantoss.github.io/mtg-collection-tracker/
 2. Click "Sign In" → "Create Account"
 3. Use your unique invite code: `[PROVIDE CODE HERE]`
 4. Create your account and start tracking your collection!
@@ -70,12 +70,12 @@ As admin, you can:
 - **User Management**: View user details and activity
 
 ## 🔧 Technical Details
-- **Hosting**: Vercel (Free Tier)
+- **Hosting**: GitHub Pages (Free)
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth with Row Level Security
 - **Frontend**: Vanilla JavaScript PWA
 - **APIs**: Scryfall for MTG card data
-- **SSL**: Automatic HTTPS via Vercel
+- **SSL**: Automatic HTTPS via GitHub Pages
 - **CDN**: Global content delivery network
 
 ## 📊 System Limits
@@ -94,7 +94,7 @@ As admin, you can:
 ## 🆘 Support & Maintenance
 - **Admin Panel**: Monitor users and system health
 - **GitHub**: Source code at https://github.com/Durantoss/mtg-collection-tracker
-- **Vercel Dashboard**: Monitor deployments and performance
+- **GitHub Pages**: Monitor deployments via GitHub repository settings
 - **Supabase Dashboard**: Database management and analytics
 
 ---
@@ -104,6 +104,6 @@ Your MTG Collection Tracker is now a fully functional, production-ready Progress
 
 **Total Development Time**: Complete
 **Status**: ✅ LIVE AND READY FOR USERS
-**URL**: https://mtg-collection-tracker.vercel.app/
+**URL**: https://durantoss.github.io/mtg-collection-tracker/
 
 Enjoy your new MTG Collection Tracker! 🃏✨
