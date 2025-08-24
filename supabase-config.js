@@ -5,8 +5,8 @@
 // after setting up your Supabase project at https://supabase.com
 
 const SUPABASE_CONFIG = {
-    url: import.meta.env?.VITE_SUPABASE_URL || 'https://nqbqdpyaxpgrbrjklybb.supabase.co', // Your project URL
-    anonKey: import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xYnFkcHlheHBncmJyamtseWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODA4MTAsImV4cCI6MjA3MTQ1NjgxMH0.7Gifr88lgDWAxRnBnrdMQ4qtY9X2M46e0cNA2KAtXVw', // Your anon key
+    url: (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) || 'https://nqbqdpyaxpgrbrjklybb.supabase.co', // Your project URL
+    anonKey: (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xYnFkcHlheHBncmJyamtseWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4ODA4MTAsImV4cCI6MjA3MTQ1NjgxMH0.7Gifr88lgDWAxRnBnrdMQ4qtY9X2M46e0cNA2KAtXVw', // Your anon key
     
     // Database table names
     tables: {
